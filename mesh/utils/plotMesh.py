@@ -4,10 +4,13 @@ from functools import reduce
 import math, numpy
 from matplotlib import pyplot
 
-n = "0"
-p_ = "perugiamesh/p"+n+".mat"
-t_ = "perugiamesh/t"+n+".mat"
-e_ = "perugiamesh/e"+n+".mat"
+prefix="../perugiamesh/"
+n = "5"
+suffix=".mat"
+
+p_ = prefix+"p"+n+suffix
+t_ = prefix+"t"+n+suffix
+e_ = prefix+"e"+n+suffix
 
 p_file = open(p_,"r").read().split("\n")
 t_file = open(t_,"r").read().split("\n")
