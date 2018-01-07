@@ -11,7 +11,7 @@ from functools import reduce
 from matplotlib import colors, ticker, cm
 import matplotlib
 
-from pymongo import  MongoClient
+from pymongo import MongoClient
 import pymongo
 import pandas
 import pprint
@@ -47,36 +47,6 @@ XXX = numpy.linspace(x_min,x_max,steps+1)
 YYY = numpy.linspace(y_max,y_min,steps+1)
 P = []
 
-'''
-for i in range(TMAX):
-	U.append([])
-	V.append([])
-	P.append([])
-
-streamline = ["x","y","v_x","v_y"]
-pressure = ["x","y","p"]
-for dirname, dirnames, filenames in os.walk('plot/streamline'):
-	for filename in filenames:
-		print(filename)
-		if filename.split('_')[0] == 'sl':
-			with open(os.path.join(dirname, filename)) as csvfile:
-				reader = csv.DictReader(csvfile,delimiter=';',fieldnames=streamline)
-				t = filename.split('_')[1].split('.')[0]
-				if int(t)<TMAX:
-					for row in reader:
-						U[int(t)].append(float(row['v_x']))
-						V[int(t)].append(float(row['v_y']))
-					U[int(t)] = numpy.asarray(U[int(t)]).reshape(41,41)
-					V[int(t)] = numpy.asarray(V[int(t)]).reshape(41,41)
-		if filename.split('_')[0] == 'p':
-			with open(os.path.join(dirname, filename)) as csvfile:
-				reader = csv.DictReader(csvfile,delimiter=';',fieldnames=pressure)
-				t = filename.split('_')[1].split('.')[0]
-				if int(t)<TMAX:
-					for row in reader:
-						P[int(t)].append(float(row['p']))
-					P[int(t)] = numpy.asarray(P[int(t)]).reshape(41,41)
-'''
 for t in timesteps:
 
 	if t["time"]%(numpy.ceil(TMAX/ffw)) == 0:

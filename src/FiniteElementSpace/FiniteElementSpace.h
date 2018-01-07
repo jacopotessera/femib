@@ -18,12 +18,16 @@
 #include "../dmat/dmat_impl.h"
 #include "../affine/affine.h"
 #include "../Gauss/Gauss.h"
+#include "../Gauss/GaussService.h"
 
 #include "../utils/Mesh.h"
 #include "../utils/utils.h"
 #include "../FiniteElement/FiniteElement.h"
 
+#include "../FiniteElement/FiniteElementService.h"
 #include "../TriangleMesh/TriangleMesh.h"
+
+#include "../mongodb/struct.h"
 
 class FiniteElementSpace
 {
@@ -74,6 +78,9 @@ class FiniteElementSpace
 		//void buildMini(const std::vector<double> &v);
 		//F mini(int n);
 };
+
+miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace);
+FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
 
 #endif
 

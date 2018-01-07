@@ -28,6 +28,11 @@ FiniteElement FiniteElementService::getFiniteElement(std::string f)
 
 void FiniteElementService::createFiniteElementList()
 {
+	//for(auto finiteElementBuilder : finiteElementBuilderList)
+	//{
+	//	FiniteElement finiteElement = finiteElementBuilder();
+	//	finiteElementList[finiteElement.finiteElementName] = finiteElement;
+	//}
 	finiteElementList["P0_2d2d"] = createFiniteElementP0_2d2d();
 	finiteElementList["P0_2d1d"] = createFiniteElementP0_2d1d();
 	finiteElementList["P1_2d2d"] = createFiniteElementP1_2d2d();

@@ -10,8 +10,9 @@
 class FiniteElementSpaceV : public FiniteElementSpace
 {
 	public:
-		FiniteElementSpaceV();
+		FiniteElementSpaceV() : FiniteElementSpace(){};
 		FiniteElementSpaceV(TriangleMesh t, FiniteElement f, Gauss g) : FiniteElementSpace(t,f,g){};
+		FiniteElementSpaceV& operator=(const FiniteElementSpace &finiteElementSpace);
 		void buildEdge();
 };
 

@@ -144,7 +144,7 @@ void FiniteElementSpace::calc(const std::vector<double> &v)
 		for(int k=0;k<gauss.n;k++)
 		{
 			dvec y; y.size = ambientDim;
-			dmat z; z.rows = ambientDim; z.cols = ambientDim;
+			dmat z; z.rows = ambientDim; z.cols = theOtherDim;
 	
 			for(int i=0;i<baseFunction.size();++i)
 			{
@@ -396,5 +396,28 @@ std::vector<std::vector<dvec>> FiniteElementSpace::getValuesInGaussNodes(const s
 		}
 	}
 	return x;
+}
+
+
+miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace)
+{
+	miniFE m;
+	m.finiteElement = finiteElementSpace.finiteElement.finiteElementName;
+	m.gauss = finiteElementSpace.gauss.gaussName;
+	m.mesh.P = finiteElementSpace.T.mesh.P;
+	m.mesh.T = finiteElementSpace.T.mesh.T;
+	m.mesh.E = finiteElementSpace.T.mesh.E;
+	return m;
+}
+
+FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService)
+{
+	FiniteElementSpace finiteElementSpace;
+	TriangleMesh triangleMesh = TriangleMesh(mini.mesh,gaussService.getGauss(mini.gauss));
+	triangleMesh.loadOnGPU();
+	finiteElementSpace = FiniteElementSpace(triangleMesh,finiteElementService.getFiniteElement(mini.finiteElement),gaussService.getGauss(mini.gauss));
+	finiteElementSpace.buildFiniteElementSpace();
+	finiteElementSpace.buildEdge();
+	return finiteElementSpace;
 }
 

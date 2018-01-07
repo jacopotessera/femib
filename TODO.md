@@ -1,10 +1,7 @@
 # TODO
 
-* rinominare femib
-* spostare tutto su git
 * sistemare makefile, corregere dipendenze
 * scrivere qualcosa nel README
-* metodo serio per aumentare devicestacksize
 
 ## build/
 
@@ -16,25 +13,24 @@
 
 ## mesh/
 
-* cambiare formato mesh ( depivot.py )
-* migliorare plotMesh.py
-* implementare read per nuovo formato mesh
+* migliorare plotMesh.py (percorso file, 1D, 3D)
 
 ## plot/
 
 * migliorare plot.py
-* salvare gif
-* salvare streamline su db
+* salvare gif (?)
 
 ## src/
 
 ### affine/
 
+* check sulle dimensioni
+* mesh valida?
+
 ### dmat/
 
 * sistemare constructor di dmat
 * implementare gli altri operatori come dmat*
-* pinv semplificata
 * a cosa serve P_?
 
 ### FiniteElement/

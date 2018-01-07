@@ -1,15 +1,14 @@
-CC = nvcc  -std=c++11 --expt-relaxed-constexpr -Wno-deprecated-gpu-targets
-#DISABLE_OPT = -O0 -Xcicc -O0 -Xptxas -O0
+CC = /opt/cuda/bin/nvcc --expt-relaxed-constexpr
 DEBUG = -G -O0 #-g -pg
-CFLAGS = #-D_MWAITXINTRIN_H_INCLUDED #-DBOOST_NO_CXX11_NOEXCEPT
-EIGENFLAGS = -I/usr/local/include/eigen3/ -Xcompiler -fopenmp -lgomp#-I/usr/include/superlu -lsuperlu -lspqr -lsuitesparseconfig -lcxsparse -ltbb -lcholmod -lamd -lcolamd -lblas -llapack -lsuperlu -larpack --expt-relaxed-constexpr -lpthread
+CFLAGS = -std=c++11
+EIGENFLAGS = -I/usr/local/include/eigen3/ -Xcompiler -fopenmp -lgomp
 CPPFLAGS = -lcppunit
-CUDAFLAGS = -L/usr/local/cuda/lib64 -lcuda -lcudart
+CUDAFLAGS = -L/opt/cuda/lib64 -lcuda -lcudart
 MONGOFLAGS = -L/lib -L/usr/local/lib -I/usr/local/include/mongocxx/v_noabi -I/usr/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/include/libbson-1.0 -lmongocxx -lbsoncxx -l:libmongocxx.so._noabi -l:libbsoncxx.so._noabi
 DATETIME=`date +"%Y-%m-%d_%H:%M:%S"`
 
 VPATH = src/Cuda:src/dmat:src/read:src/affine:src/Gauss:src/TriangleMesh:src/FiniteElement:src/FiniteElementSpace:src/utils:src/tensorAlgebra:src/mongodb:src/Simulation
-.PHONY : test clean plot doc prepare
+.PHONY : test clean plot doc prepare find
 
 build/mongodb_impl.o: mongodb_impl.cpp mongodb_impl.h
 	@echo -n "Compiling $@..."
@@ -111,16 +110,13 @@ profile:
 
 clean:
 	@echo -n "Cleaning... "
+	@rm -rf build/*
 	@rm -rf test/build/*
 	@rm -rf test/results/*
-	@rm -rf build/*
 	@echo "Done."
 
 plot:
-	#@cp plot/streamline/sl_2.csv plot/streamline/sl_0.csv
-	#@cp plot/streamline/sl_2.csv plot/streamline/sl_1.csv
-	#@cp plot/streamline/p_2.csv plot/streamline/p_0.csv
-	#@cp plot/streamline/p_2.csv plot/streamline/p_1.csv 
+	@chmod +x plot/plot.py
 	@./plot/plot.py $(SAVE)
 
 doc:
@@ -128,4 +124,9 @@ doc:
 
 prepare:
 	@echo jacopo | sudo -S pacman --noconfirm -S xterm
+	@mkdir build test/build test/results
+
+find:
+	@echo "Searching for '"${1}"' ..."
+	@find src -type f | xargs grep -i "${1}"
 

@@ -94,7 +94,6 @@ class Simulation
 
 		void buildEdge();
 		void buildFluidMatrices();
-		void buildFluidMatricesParallel();
 		void buildStructureMatrices();
 		void buildMultiplierMatrices();
 
@@ -147,6 +146,9 @@ class Simulation
 		esmat sLs;
 		esmat sK2f;
 		esmat sLf;
+
+		//TODO solver in constructor
+		//Eigen::SparseSolverBase<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>,Eigen::Lower|Eigen::Upper> solver;
 };
 
 #endif

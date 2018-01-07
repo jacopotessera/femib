@@ -7,6 +7,7 @@
 FiniteElement::FiniteElement(){}
 FiniteElement::~FiniteElement(){}
 
+[[deprecated]]
 std::vector<F> buildFunctions(const Mesh &mesh, const Nodes &nodes,const std::vector<std::vector<int> > &support, const FiniteElement &f)
 {
 	std::vector<F> functions;
