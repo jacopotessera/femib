@@ -23,11 +23,42 @@ x_max = 1
 y_min = -1
 y_max = 1
 steps = 20
+op_ = "plot"
 
 db = MongoClient('localhost', 27017)['testSimulation']
 simCollection = db['sim']
 timestepCollection = db['plotData']
-id_ = "1"
+rawTimestepCollection = db['timestep']
+
+sims = simCollection.find({},{"id": 1}).sort([("id", pymongo.DESCENDING)])
+if len(sys.argv)==1:
+	print("Available Simulation:")
+	n = 1
+	for a in sims:
+		id_ = str(a["id"])
+		try:
+			TMAX = timestepCollection.find({"id" : id_},{"time" : 1}).sort([("time", pymongo.DESCENDING)]).limit(1)[0]["time"]
+		except:
+			TMAX = 0
+		print("\t* ["+str(n)+"] "+ id_ +" - "+str(TMAX)+" timesteps")
+		n+=1
+	print("")
+	print("plot with:")
+	print("\t$ make plot ID=n")
+	sys.exit()
+elif len(sys.argv)==2:
+	id_ = sims[int(sys.argv[1])-1]["id"]
+	print("Plotting Simulation with id "+id_)
+else:
+	id_ = sims[int(sys.argv[1])-1]["id"]
+	op_ = sys.argv[2]
+
+if op_ == "delete":
+	print("Deleting Simulation with id "+id_+" ...")
+	simCollection.delete_many({"id" : id_})
+	timestepCollection.delete_many({"id" : id_})
+	rawTimestepCollection.delete_many({"id" : id_})
+	sys.exit()
 
 sim = simCollection.find({"id" : id_},{"S.mesh" : 1,"parameters" : 1})
 deltat = sim[0]["parameters"]["deltat"]

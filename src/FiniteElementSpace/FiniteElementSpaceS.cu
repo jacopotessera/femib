@@ -8,8 +8,8 @@ FiniteElementSpaceS::FiniteElementSpaceS(){}
 
 void FiniteElementSpaceS::buildEdge()
 {
-	nBT = 0;
-	notEdge = linspace(spaceDim);
-	C = compress(spaceDim,notEdge);
+	edge = join(nodes.E,nodes.E+spaceDim/ambientDim);//TODO 1d? 3d?
+	nBT = edge.size();
+	notEdge = setdiff(linspace(spaceDim),edge);
 }
 

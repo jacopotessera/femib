@@ -20,13 +20,13 @@
 #include "../Gauss/Gauss.h"
 #include "../Gauss/GaussService.h"
 
-#include "../utils/Mesh.h"
-#include "../utils/utils.h"
-#include "../FiniteElement/FiniteElement.h"
-
-#include "../FiniteElement/FiniteElementService.h"
 #include "../TriangleMesh/TriangleMesh.h"
+#include "../FiniteElement/FiniteElement.h"
+#include "../FiniteElement/FiniteElementService.h"
 
+#include "../utils/Mesh.h"
+
+#include "../utils/utils.h"
 #include "../mongodb/struct.h"
 
 class FiniteElementSpace
@@ -69,7 +69,11 @@ class FiniteElementSpace
 		std::vector<int> edgeFunctions;
 		std::vector<int> edge;
 		std::vector<int> notEdge;
-		Eigen::SparseMatrix<double> C;
+		Eigen::SparseMatrix<double> gC(const Eigen::SparseMatrix<double> &S);
+		Eigen::SparseMatrix<double> gR(const Eigen::SparseMatrix<double> &S);
+		Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> E;
+		Eigen::SparseMatrix<double> applyEdgeCondition(const Eigen::SparseMatrix<double> &S);
+
 		int nBT;
 
 		std::vector<std::map<dvec,xDx>> preCalc;	
@@ -81,6 +85,7 @@ class FiniteElementSpace
 
 miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace);
 FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace &E, const FiniteElementSpace &F);
 
 #endif
 

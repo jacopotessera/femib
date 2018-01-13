@@ -8,8 +8,6 @@
 #include "../src/Gauss/Gauss.h"
 #include "../src/Gauss/GaussService.h"
 #include "../src/TriangleMesh/TriangleMesh.h"
-#include "../src/FiniteElement/FiniteElement.h"
-#include "../src/FiniteElement/FiniteElementService.h"
 #include "../src/FiniteElementSpace/FiniteElementSpace.h"
 #include "../src/tensorAlgebra/tensorAlgebra.h"
 

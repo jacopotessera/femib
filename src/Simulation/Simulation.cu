@@ -9,7 +9,7 @@ Simulation::Simulation(){}
 
 Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
 	FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
-	timestep t0,timestep t1)
+	timestep t0,timestep t1,bool full)
 {
 	this->id = id;
 	this->db = db;
@@ -18,33 +18,20 @@ Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
 	this->Q = Q;
 	this->S = S;
 	this->L = L;
-	this->time = 2; //TODO
-	this->full = true;
+	this->full = full;
 	setInitialValues(t0,t1);
 	saveSimulation();
-}
-
-Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
-	FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,
-	timestep t0,timestep t1)
-{
-	this->id = id;
-	this->db = db;
-	this->parameters = parameters;
-	this->V = V;
-	this->Q = Q;
-	this->S = S;
-	this->L = FiniteElementSpaceL(S.T,S.finiteElement,S.gauss); //TODO
 	this->time = 2; //TODO
-	this->full = false;
-	setInitialValues(t0,t1);
-	saveSimulation();
 }
 
 Simulation::~Simulation(){}
 
 void Simulation::setInitialValues(timestep t0, timestep t1)
 {
+	t0.time = 0;
+	t0.id = this->id;
+	t1.time = 1;
+	t1.id = this->id;
 	timesteps.push_back(t0);
 	timesteps.push_back(t1);
 }
@@ -54,7 +41,7 @@ void Simulation::clear()
 	Ct.clear();
 	Lf.clear();
 	MB.clear();
-	M.clear();	
+	M.clear();
 	MM.clear();
 }
 
@@ -97,7 +84,9 @@ void Simulation::saveSimulation()
 {
 	save_sim(db, sim2miniSim());
 	saveTimestep(0);
+	//savePlotData(0);
 	saveTimestep(1);
+	//savePlotData(1);
 }
 
 void Simulation::getSimulation(dbconfig db,std::string id)
@@ -133,7 +122,7 @@ void Simulation::getSimulation(dbconfig db,std::string id)
 	L.buildFiniteElementSpace();
 	L.buildEdge();
 
-//	int 
+//	int
 	time = get_time(db,id);
 
 	for(int i=0;i<time;++i)
@@ -290,7 +279,7 @@ void Simulation::advance(int steps)
 		std::cout << "buildK2f..." << std::endl;buildK2f();
 		if(full)
 		{
-			std::cout << "buildLf..." << std::endl;buildLf();		
+			std::cout << "buildLf..." << std::endl;buildLf();
 		}
 		else
 		{
@@ -322,15 +311,10 @@ void Simulation::buildFluidMatrices()
 			for(int j=0;j<V.baseFunction.size();++j)
 			{
 				BaseFunction b = V.getBaseFunction(j,n);
-
-				//double valMf = V.T.integrate(ddot(a,b),n);
-				//double valK1f = V.T.integrate(pf(symm(Da),symm(Db)),n);
-				//double valP = V.T.integrate(pf(Da,Db),n); //poisson
 				double valMf = V.T.integrate(ddot(a.x,b.x),n);
 				double valK1f = V.T.integrate(pf(symm(a.dx),symm(b.dx)),n);
-				//TODO: aggiungere assert intelligenti qua e la
 				assert(a.i < V.spaceDim && b.i < V.spaceDim);
-				assert(a.mini_i <= (V.spaceDim-V.nBT) && b.mini_i <= (V.spaceDim-V.nBT));
+				assert(a.mini_i < (V.spaceDim-V.nBT) && b.mini_i < (V.spaceDim-V.nBT));
 
 				if(valMf!=0)
 				{
@@ -355,7 +339,6 @@ void Simulation::buildFluidMatrices()
 				double valB = -V.T.integrate(project(b.x,0)*div(a.dx),n);
 				assert(a.i < V.spaceDim && b.i < Q.spaceDim);
 				assert(a.mini_i < (V.spaceDim-V.nBT) && b.mini_i < (Q.spaceDim-Q.nBT));
-
 				if(valB!=0)
 				{
 					B.push_back(Eigen::Triplet<double>(a.i,b.i,valB));
@@ -365,69 +348,51 @@ void Simulation::buildFluidMatrices()
 	}
 	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(V.spaceDim,Q.spaceDim);
 	sB.setFromTriplets(B.begin(),B.end());
-	std::vector<Eigen::Triplet<double>> H;
-	Eigen::SparseMatrix<double> sH(1,Q.spaceDim);
-	Eigen::Matrix<double,1,Eigen::Dynamic> dH(Q.spaceDim);
-	for(int n=0;n<Q.nodes.T.size();++n)
-	{
-		for(int j=0;j<Q.baseFunction.size();++j)
-		{
-			BaseFunction b = Q.getBaseFunction(j,n);
-			double valH = Q.T.integrate(project(b.x,0),n);
-			assert(b.i < Q.spaceDim);
-			H.push_back(Eigen::Triplet<double>(0,b.i,valH));
-		}
-	}
 
-	sH.setFromTriplets(H.begin(),H.end());
-	dH = Eigen::Matrix<double,1,Eigen::Dynamic>(sH);
-	dH = dH / dH(0);
+	auto a = Q.applyEdgeCondition(sB);
+	auto b = compress(Q.applyEdgeCondition(sB),Q,V);
 
-	Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> sBc0(V.spaceDim,1);
-	sBc0=sB.col(0);
-	sB = sB - sBc0*dH;
-	for(int n=0;n<sB.outerSize();++n)
-	{
-		for(Eigen::SparseMatrix<double>::InnerIterator it(sB,n);it;++it)
-		{
-			double valB=it.value();
-			if(valB!=0)
-			{ 
-				int i0 = find(V.notEdge,it.row());
-				int j0 = find(Q.notEdge,it.col());
-				if(i0!=-1 && j0!=-1)
-				{
-					C.push_back(Eigen::Triplet<double>(i0,j0+(V.spaceDim-V.nBT),valB));
-					C.push_back(Eigen::Triplet<double>(j0+(V.spaceDim-V.nBT),i0,valB));
-				}
-			}
-		}
-	}
+	etmat temp = esmat2etmat(compress(Q.applyEdgeCondition(sB),Q,V),0,(V.spaceDim-V.nBT));
+
+	//std::cout << edmat(etmat2esmat(C,10,10)) << std::endl << std::endl;
+
+	//std::cout << edmat(b) << std::endl << std::endl;
+
+	C+=temp;
+	C+=transpose(temp);
+	//std::cout << C << std::endl;
+	//std::cout << edmat(etmat2esmat(C,18,18)) << std::endl << std::endl;
 }
 
 void Simulation::buildStructureMatrices()
 {
+	etmat Ks;
+	etmat Bs;
 	for(int n=0;n<S.nodes.T.size();++n)
 	{
 		for(int i=0;i<S.baseFunction.size();++i)
 		{
-			std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
-			std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
-			int i_=S.getIndex(i,n);
-			int i0=S.getMiniIndex(i,n);
+			BaseFunction a = S.getBaseFunction(i,n);
+			//std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
+			//std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
+			//int i_=S.getIndex(i,n);
+			//int i0=S.getMiniIndex(i,n);
 			for(int j=0;j<S.baseFunction.size();++j)
 			{
-				std::function<dvec(dvec)> b = [&](const dvec &x){return S.baseFunction[j].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
-				std::function<dmat(dvec)> Db = [&](const dvec &x){return S.baseFunction[j].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
-				int j_=S.getIndex(j,n);
-				int j0=S.getMiniIndex(j,n);			
-	
-				double valMs = S.T.integrate(ddot(a,b),n);
-				double valKs = S.T.integrate(pf(Da,Db),n);
+				BaseFunction b = S.getBaseFunction(j,n);
+				//std::function<dvec(dvec)> b = [&](const dvec &x){return S.baseFunction[j].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
+				//std::function<dmat(dvec)> Db = [&](const dvec &x){return S.baseFunction[j].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
+				//int j_=S.getIndex(j,n);
+				//int j0=S.getMiniIndex(j,n);
 
-				Ms.push_back(Eigen::Triplet<double>(i_,j_,valMs));
+				double valMs = S.T.integrate(ddot(a.x,b.x),n);
+				double valKs = parameters.kappa*S.T.integrate(pf(a.dx,b.dx),n);
 
-				if(i0!=-1 && j0!=-1)
+				Ms.push_back(Eigen::Triplet<double>(a.i,b.i,valMs));
+				Ks.push_back(Eigen::Triplet<double>(a.i,b.i,valKs));
+				Bs.push_back(Eigen::Triplet<double>(a.i,b.i,parameters.deltarho/(parameters.deltat*parameters.deltat)*valMs+valKs));
+
+				/*if(i0!=-1 && j0!=-1)
 				{
 					if(valMs!=0)
 					{
@@ -435,12 +400,38 @@ void Simulation::buildStructureMatrices()
 					}
 					if(valKs!=0)
 					{
-						C.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),parameters.kappa*valKs));
+						C.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),valKs));
 					}
-				}
+				}*/
 			}
 		}
 	}
+
+	/*Eigen::Matrix<double,2,Eigen::Dynamic> HH(2,S.spaceDim);
+	HH(0,0)=1;
+	HH(0,64)=-1;
+	HH(1,65)=1;
+	HH(1,129)=-1;
+
+	sBc0=Bs*Eigen::SparseMatrix<double>(compress(130,{64,129}).transpose());
+
+	Bs = Bs + sBc0*HH;
+	for(int n=0;n<Bs.outerSize();++n)
+	{
+		for(Eigen::SparseMatrix<double>::InnerIterator it(Bs,n);it;++it)
+		{
+			double valB=it.value();
+			if(valB!=0)
+			{
+				int i0 = find(S.notEdge,it.row());
+				int j0 = find(S.notEdge,it.col());
+				if(i0!=-1 && j0!=-1)
+				{
+					C.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),valB));
+				}
+			}
+		}
+	}*/
 }
 
 void Simulation::buildMultiplierMatrices()
@@ -449,32 +440,59 @@ void Simulation::buildMultiplierMatrices()
 	{
 		for(int i=0;i<S.baseFunction.size();++i)
 		{
-			std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
-			std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
-			int i_=S.getIndex(i,n);
-			int i0=S.getMiniIndex(i,n);
+			BaseFunction a = S.getBaseFunction(i,n);
+			//std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)));};
+			//std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(pinv(affineB(n,S.T.mesh))*(x-affineb(n,S.T.mesh)))*S.T.Binv[n];};
+			//int i_=S.getIndex(i,n);
+			//int i0=S.getMiniIndex(i,n);
 			for(int j=0;j<L.baseFunction.size();++j)
 			{
-				std::function<dvec(dvec)> b = [&](const dvec &x){return L.baseFunction[j].x(pinv(affineB(n,L.T.mesh))*(x-affineb(n,L.T.mesh)));};
-				std::function<dmat(dvec)> Db = [&](const dvec &x){return L.baseFunction[j].dx(pinv(affineB(n,L.T.mesh))*(x-affineb(n,L.T.mesh)))*L.T.Binv[n];};
-				int j_=L.getIndex(j,n);
-				int j0=L.getMiniIndex(j,n);			
-	
-				double valLs = -S.T.integrate(ddot(a,b),n);
-
-				Ls.push_back(Eigen::Triplet<double>(i_,j_,valLs));
-
-				if(i0!=-1 && j0!=-1)
-				{
-					if(valLs!=0)
-					{
-						C.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),valLs));
-						C.push_back(Eigen::Triplet<double>(j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),valLs));
-					}
-				}
+				BaseFunction b = L.getBaseFunction(j,n);
+				//std::function<dvec(dvec)> b = [&](const dvec &x){return L.baseFunction[j].x(pinv(affineB(n,L.T.mesh))*(x-affineb(n,L.T.mesh)));};
+				//std::function<dmat(dvec)> Db = [&](const dvec &x){return L.baseFunction[j].dx(pinv(affineB(n,L.T.mesh))*(x-affineb(n,L.T.mesh)))*L.T.Binv[n];};
+				//int j_=L.getIndex(j,n);
+				//int j0=L.getMiniIndex(j,n);
+				double valLs = S.T.integrate(ddot(a.x,b.x),n);
+				Ls.push_back(Eigen::Triplet<double>(a.i,b.i,valLs));
+				//if(a.mini_i!=-1 && b.mini_i!=-1)
+				//{
+				//	if(valLs!=0)
+				//	{
+				//		C.push_back(Eigen::Triplet<double>(a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),b.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),-valLs));
+				//		C.push_back(Eigen::Triplet<double>(b.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),-valLs));
+				//	}
+				//}
 			}
 		}
 	}
+
+	/*Eigen::Matrix<double,2,Eigen::Dynamic> HH(2,S.spaceDim);
+	HH(0,0)=1;
+	HH(0,64)=-1;
+	HH(1,65)=1;
+	HH(1,129)=-1;
+
+	sBc0=Bs*Eigen::SparseMatrix<double>(compress(130,{64,129}).transpose());
+
+	Bs = Bs + sBc0*HH;
+	for(int n=0;n<Bs.outerSize();++n)
+	{
+		for(Eigen::SparseMatrix<double>::InnerIterator it(Bs,n);it;++it)
+		{
+			double valB=it.value();
+			if(valB!=0)
+			{
+				int i0 = find(V.notEdge,it.row());
+				int j0 = find(S.notEdge,it.col());
+				if(i0!=-1 && j0!=-1)
+				{
+					C.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),-valBs));
+					C.push_back(Eigen::Triplet<double>(j0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),-valBs));
+				}
+			}
+		}
+	}*/
+
 }
 
 void Simulation::buildK2f()
@@ -498,13 +516,13 @@ void Simulation::buildK2f()
 				std::function<double(dvec)> g = ddot(dotdiv(v.x,Da),a)-ddot(dotdiv(v.x,Db),b);
 				double valK2f = V.T.integrate(g,n);
 				if(valK2f!=0)
-				{          
+				{
 					if(i0!=-1 && j0!=-1)
 					{
 						Ct.push_back(Eigen::Triplet<double>(i0,j0,parameters.rho/2.0*valK2f));
 					}
-				}  
-			}  
+				}
+			}
 		}
 	}
 }
@@ -523,30 +541,30 @@ void Simulation::buildLf()
 			int m=MM[n][k];
 			for(int i=0;i<L.baseFunction.size();++i)
 			{
-				std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(S.T.Binv[n]*(x-S.T.b[n]));};
-				std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(S.T.Binv[n]*(x-S.T.b[n]))*S.T.Binv[n];};
-				int i_ = S.getIndex(i,n);
-				int i0 = S.getMiniIndex(i,n);
-
+				BaseFunction a = S.getBaseFunction(i,n);
+				//std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(S.T.Binv[n]*(x-S.T.b[n]));};
+				//std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(S.T.Binv[n]*(x-S.T.b[n]))*S.T.Binv[n];};
+				//int i_ = S.getIndex(i,n);
+				//int i0 = S.getMiniIndex(i,n);
 				for(int j=0;j<V.baseFunction.size();++j)
 				{
-					std::function<dvec(dvec)> b = [&](const dvec &x){return V.baseFunction[j].x(V.T.Binv[m]*(x-V.T.b[m]));};
-					std::function<dmat(dvec)> Db = [&](const dvec &x){return V.baseFunction[j].dx(V.T.Binv[m]*(x-V.T.b[m]))*V.T.Binv[m];};
-					int j_ = V.getIndex(j,m);
-					int j0 = V.getMiniIndex(j,m);
-
-					F dB = {b,Db};
-					double valLf = S.T.integrate(pf(Da,compose(dB,preS).dx)+ddot(a,compose(dB,preS).x),n);
+					BaseFunction b = V.getBaseFunction(j,m);
+					//std::function<dvec(dvec)> b = [&](const dvec &x){return V.baseFunction[j].x(V.T.Binv[m]*(x-V.T.b[m]));};
+					//std::function<dmat(dvec)> Db = [&](const dvec &x){return V.baseFunction[j].dx(V.T.Binv[m]*(x-V.T.b[m]))*V.T.Binv[m];};
+					//int j_ = V.getIndex(j,m);
+					//int j0 = V.getMiniIndex(j,m);
+					//F dB = {b,Db};
+					double valLf = S.T.integrate(pf(a.dx,compose(b.f,preS).dx)+ddot(a.x,compose(b.f,preS).x),n);
 					if(valLf!=0)
 					{
-						Lf.push_back(Eigen::Triplet<double>(i_,j_,valLf));
-						if(i0!=-1 && j0!=-1)
+						Lf.push_back(Eigen::Triplet<double>(a.i,b.i,valLf));
+						if(a.mini_i!=-1 && b.mini_i!=-1)
 						{
-						  Ct.push_back(Eigen::Triplet<double>(i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),j0,valLf));
-						  Ct.push_back(Eigen::Triplet<double>(j0,i0+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),valLf));
+						  Ct.push_back(Eigen::Triplet<double>(a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),b.mini_i,valLf));
+						  Ct.push_back(Eigen::Triplet<double>(b.mini_i,a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),valLf));
 						}
 					}
-				}    
+				}
 			}
 		}
 	}
@@ -621,7 +639,7 @@ void Simulation::triplet2sparse()
 		sC = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT));
 		sCt = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT));
 	}
-	
+
 	sC.setFromTriplets(C.begin(),C.end());
 	sCt.setFromTriplets(Ct.begin(),Ct.end());
 	sCt = sC+sCt;
@@ -645,9 +663,9 @@ void Simulation::buildb()
 	if(full)
 	{
 		b = evec::Zero((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+L.spaceDim);
-		evec f = parameters.rho/parameters.deltat*sMf*u_1;
+		evec f = (parameters.rho/parameters.deltat)*sMf*u_1;
 		evec o = evec::Zero(Q.spaceDim);
-		evec g = parameters.deltarho/(parameters.deltat*parameters.deltat)*sMs*(2.0*x_1-x_2);
+		evec g = (parameters.deltarho/(parameters.deltat*parameters.deltat))*sMs*(2.0*x_1-x_2);
 		evec d = (-1.0/parameters.deltat)*sLs*(x_1);
 
 		for(int i=0;i<V.spaceDim+Q.spaceDim+S.spaceDim+L.spaceDim;++i)
@@ -784,12 +802,12 @@ void Simulation::solve()
 	}
 	else
 	{
-		//Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
+		Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
 		//Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
 		//Eigen::HouseholderQR<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>> solver;
 		//Eigen::JacobiSVD<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>> solver;
 		//Eigen::SPQR<Eigen::SparseMatrix<double>> solver;
-		Eigen::BiCGSTAB<Eigen::SparseMatrix<double>,Eigen::IncompleteLUT<double>> solver;
+		//Eigen::BiCGSTAB<Eigen::SparseMatrix<double>,Eigen::IncompleteLUT<double>> solver;
 		//Eigen::SuperLU<Eigen::SparseMatrix<double>> solver;
 		//Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,Eigen::Lower|Eigen::Upper> solver;
 		std::cout << Eigen::nbThreads() << std::endl;
@@ -800,4 +818,3 @@ void Simulation::solve()
 		time++; //TODO
 	}
 }
-

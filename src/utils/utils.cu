@@ -134,22 +134,95 @@ std::vector<int> ditrian2vector(const ditrian &t)
 	return v;
 }
 
-Eigen::SparseMatrix<double> compress(int dim, const std::vector<int> &x)
+Eigen::SparseMatrix<double> getColumns(Eigen::SparseMatrix<double> S, const std::vector<int> &x)
 {
 	std::vector<Eigen::Triplet<double>> c;
-	Eigen::SparseMatrix<double> C = Eigen::SparseMatrix<double>(x.size(),dim);
-
-	int j = 0;
-	for(int i=0;i<dim;++i)
+	Eigen::SparseMatrix<double> C = Eigen::SparseMatrix<double>(S.cols(),x.size());
+	for(int i=0;i<x.size();++i)
 	{
-		if(find(x,i)!=-1)
-		{
-			c.push_back(Eigen::Triplet<double>({j++,i,1}));
-		}
+		c.push_back(Eigen::Triplet<double>({x[i],i,1}));
 	}
 	C.setFromTriplets(c.begin(),c.end());
-	return C;
-	//C*A*Eigen::SparseMatrix<double>(C.transpose())
-	//C*a
+	return S*C;
+}
+
+Eigen::SparseMatrix<double> getRows(Eigen::SparseMatrix<double> S, const std::vector<int> &x)
+{
+	std::vector<Eigen::Triplet<double>> c;
+	Eigen::SparseMatrix<double> C = Eigen::SparseMatrix<double>(S.rows(),x.size());
+	for(int i=0;i<x.size();++i)
+	{
+		c.push_back(Eigen::Triplet<double>({x[i],i,1}));
+	}
+	C.setFromTriplets(c.begin(),c.end());
+	return C.transpose()*S;
+}
+
+etmat esmat2etmat(const esmat& A)
+{
+	return esmat2etmat(A,0,0);
+}
+
+etmat esmat2etmat(const esmat& A, int rowDrift, int colDrift)
+{
+	etmat B;
+	for(int n=0;n<A.outerSize();++n)
+	{
+		for(Eigen::SparseMatrix<double>::InnerIterator it(A,n);it;++it)
+		{
+			B.push_back(Eigen::Triplet<double>({it.row()+rowDrift,it.col()+colDrift,it.value()}));
+		}
+	}
+	return B;
+}
+
+esmat etmat2esmat(const etmat &A, int rows, int cols)
+{
+	esmat B(rows,cols);
+	B.setFromTriplets(A.begin(),A.end());
+	return B;
+}
+
+etmat transpose(const etmat &A)
+{
+	etmat B;
+	for(auto a : A)
+		B.push_back(Eigen::Triplet<double>({a.col(),a.row(),a.value()}));
+	return B;
+}
+
+etmat& operator+=(etmat& lhs, const etmat &rhs)
+{
+	lhs.insert(lhs.end(),rhs.begin(),rhs.end());
+	return lhs;
+	//(*this).insert((*this).end(),rhs.begin(),rhs.end());
+	//return *this;
+}
+
+
+/*etmat operator+(etmat lhs, const etmat &rhs)
+{
+	lhs.insert(lhs.end(),rhs.begin(),rhs.end());
+	return lhs;
+	//(*this).insert((*this).end(),rhs.begin(),rhs.end());
+	//return *this;
+}*/
+
+std::ostream& operator<<(std::ostream& out, const etmat &T)
+{
+	for(auto t : T)
+	{
+		out << t.row()<< "x" << t.col() << ": " << t.value() << std::endl;
+	}
+	out << std::endl;
+}
+
+std::string getTimestamp()
+{
+	std::time_t result = std::time(0);
+	char d[16];
+	std::strftime(d,16,"%Y%m%d_%H%M%S",std::localtime(&result));
+	std::string s(d);
+	return s;
 }
 

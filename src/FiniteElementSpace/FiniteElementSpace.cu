@@ -398,6 +398,15 @@ std::vector<std::vector<dvec>> FiniteElementSpace::getValuesInGaussNodes(const s
 	return x;
 }
 
+Eigen::SparseMatrix<double> FiniteElementSpace::gC(const Eigen::SparseMatrix<double>& S)
+{
+	return getColumns(S,edge);
+}
+
+Eigen::SparseMatrix<double> FiniteElementSpace::gR(const Eigen::SparseMatrix<double>& S)
+{
+	return getRows(S,edge);
+}
 
 miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace)
 {
@@ -419,5 +428,17 @@ FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &g
 	finiteElementSpace.buildFiniteElementSpace();
 	finiteElementSpace.buildEdge();
 	return finiteElementSpace;
+}
+
+Eigen::SparseMatrix<double> FiniteElementSpace::applyEdgeCondition(const Eigen::SparseMatrix<double>& S)
+{
+	return S + gC(S)*E;
+}
+
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace &E, const FiniteElementSpace &F)
+{
+	return getRows(getColumns(S,E.notEdge),F.notEdge);
+	//C*A*Eigen::SparseMatrix<double>(C.transpose())
+	//C*a
 }
 

@@ -69,9 +69,28 @@ class Simulation
 		std::vector<timestep> timesteps;
 
 		Simulation();
-		Simulation(std::string id,dbconfig db,Parameters parameters,FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,timestep t0,timestep t1);
-		Simulation(std::string id,dbconfig db,Parameters parameters,FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,timestep t0,timestep t1);
 		~Simulation();
+
+		Simulation(std::string id,dbconfig db,Parameters parameters,
+			FiniteElementSpaceV V,FiniteElementSpaceQ Q,
+			FiniteElementSpaceS S,FiniteElementSpaceL L,
+			timestep t0,timestep t1,bool full);
+
+		Simulation(std::string id,dbconfig db,Parameters parameters,
+			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
+			timestep t0,timestep t1) : Simulation(id,db,parameters,V,Q,S,L,t0,t1,true){};
+
+		Simulation(std::string id,dbconfig db,Parameters parameters,
+			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,
+			timestep t0,timestep t1) : Simulation(id,db,parameters,V,Q,S,FiniteElementSpaceL(),t0,t1,false){};
+
+		Simulation(dbconfig db,Parameters parameters,
+			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
+			timestep t0,timestep t1) : Simulation(getTimestamp(),db,parameters,V,Q,S,L,t0,t1,true){};
+
+		Simulation(dbconfig db,Parameters parameters,
+			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,
+			timestep t0,timestep t1) : Simulation(getTimestamp(),db,parameters,V,Q,S,FiniteElementSpaceL(),t0,t1,false){};
 
 		void setParameters(Parameters parameters);
 		void setTime(int time);

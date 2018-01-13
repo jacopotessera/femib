@@ -14,8 +14,8 @@
 #include "../dmat/dmat.h"
 #include "../dmat/dmat_impl.h"
 #include "../utils/Mesh.h"
-#include "../utils/utils.h"
 #include "../tensorAlgebra/tensorAlgebra.h"
+#include "../utils/utils.h"
 
 class FiniteElement
 {

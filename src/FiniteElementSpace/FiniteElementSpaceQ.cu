@@ -9,14 +9,27 @@ FiniteElementSpaceQ::FiniteElementSpaceQ(){}
 void FiniteElementSpaceQ::buildEdge()
 {
 	edge = {0};
-	nBT = 1; //p(0,0)=0
+	nBT = 1;
 	notEdge = setdiff(linspace(spaceDim),edge);
-	C = compress(spaceDim,notEdge);
-	Eigen::Matrix<double,Eigen::Dynamic,1> b(nBT);
-	b(0) = 0;
 
-	Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> B(nBT,spaceDim);
-	for(int i=0;i<spaceDim;i++)
-		B(0,i) = 1;
+	std::vector<Eigen::Triplet<double>> tE;
+	Eigen::SparseMatrix<double> sE(1,spaceDim);
+	Eigen::Matrix<double,1,Eigen::Dynamic> dE(spaceDim);
+	for(int n=0;n<nodes.T.size();++n)
+	{
+		for(int j=0;j<baseFunction.size();++j)
+		{
+			BaseFunction b = getBaseFunction(j,n);
+			double valE = T.integrate(project(b.x,0),n);
+			assert(b.i < spaceDim);
+			tE.push_back(Eigen::Triplet<double>(0,b.i,valE));
+		}
+	}
+
+	sE.setFromTriplets(tE.begin(),tE.end());
+	dE = Eigen::Matrix<double,1,Eigen::Dynamic>(sE);
+	E = dE / (-1*dE(0));
+
+
 }
 
