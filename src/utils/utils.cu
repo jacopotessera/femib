@@ -158,6 +158,18 @@ Eigen::SparseMatrix<double> getRows(Eigen::SparseMatrix<double> S, const std::ve
 	return C.transpose()*S;
 }
 
+evec getRows(evec S, const std::vector<int> &x)
+{
+	std::vector<Eigen::Triplet<double>> c;
+	Eigen::SparseMatrix<double> C = Eigen::SparseMatrix<double>(S.rows(),x.size());
+	for(int i=0;i<x.size();++i)
+	{
+		c.push_back(Eigen::Triplet<double>({x[i],i,1}));
+	}
+	C.setFromTriplets(c.begin(),c.end());
+	return C.transpose()*S;
+}
+
 etmat esmat2etmat(const esmat& A)
 {
 	return esmat2etmat(A,0,0);
@@ -217,6 +229,15 @@ std::ostream& operator<<(std::ostream& out, const etmat &T)
 	out << std::endl;
 }
 
+std::ostream& operator<<(std::ostream& out, const std::vector<double> &T)
+{
+	for(auto t : T)
+	{
+		out << t << std::endl;
+	}
+	out << std::endl;
+}
+
 std::string getTimestamp()
 {
 	std::time_t result = std::time(0);
@@ -224,5 +245,25 @@ std::string getTimestamp()
 	std::strftime(d,16,"%Y%m%d_%H%M%S",std::localtime(&result));
 	std::string s(d);
 	return s;
+}
+
+std::vector<double> join(evec a, evec b, std::vector<int> ne, std::vector<int> e)
+{
+	std::vector<double> j;
+std::cout << "ne " << ne.size() << std::endl;
+std::cout << "e " << e.size() << std::endl;
+	j.reserve(ne.size()+e.size());
+	j.resize(ne.size()+e.size());
+	int ii = 0;
+	for(int i : ne)
+	{
+		j[i] = a[ii++];
+	}
+	ii = 0;
+	for(int i : e)
+	{
+		j[i] = b[ii++];
+	}
+	return j;
 }
 

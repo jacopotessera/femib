@@ -10,6 +10,7 @@
 #include "../src/FiniteElement/FiniteElement.h"
 #include "../src/FiniteElement/FiniteElementService.h"
 #include "../src/FiniteElementSpace/FiniteElementSpace.h"
+#include "../src/FiniteElementSpace/FiniteElementSpaceS.h"
 #include "../src/tensorAlgebra/tensorAlgebra.h"
 
 class TestFiniteElement : public CppUnit::TestFixture
@@ -35,7 +36,7 @@ private:
 	Gauss g;
 	FiniteElement f;
 	TriangleMesh triMesh;
-	FiniteElementSpace finElem;
+	FiniteElementSpaceS finElem;
 	FiniteElement checkFiniteElement;
 };
 
@@ -54,12 +55,12 @@ TestFiniteElement::testCheck(void)
 
 void TestFiniteElement::setUp(void)
 {
-	p = "mesh/perugiamesh/p0.mat";
-	t = "mesh/perugiamesh/t0.mat";
-	e = "mesh/perugiamesh/e0.mat";
+	p = "mesh/pSd_unif.mat";
+	t = "mesh/tSd_unif.mat";
+	e = "mesh/eSd_unif.mat";
 
-	g = gaussService.getGauss("gauss2_2d");
-	f = finiteElementService.getFiniteElement("P1_2d2d");
+	g = gaussService.getGauss("gauss5_1d");
+	f = finiteElementService.getFiniteElement("P1_1d2d");
 
 	checkFiniteElement = finiteElementService.getFiniteElement("P2_2d2d");
 
@@ -69,7 +70,17 @@ void TestFiniteElement::setUp(void)
 	triMesh.setAffineTransformation();
 	triMesh.loadOnGPU();
 
-	FiniteElementSpace finElem(triMesh,f,g);
+	FiniteElementSpaceS finElem(triMesh,f,g);
+	finElem.buildEdge();
+
+	std::cout << finElem.E << std::endl;
+
+	evec a(128);
+	a(0)=100;
+	a(64)=200;
+
+	std::cout << getColumns(finElem.E.sparseView(),finElem.notEdge)*a << std::endl;
+
 }
 
 void TestFiniteElement::tearDown(void)

@@ -29,7 +29,5 @@ void FiniteElementSpaceQ::buildEdge()
 	sE.setFromTriplets(tE.begin(),tE.end());
 	dE = Eigen::Matrix<double,1,Eigen::Dynamic>(sE);
 	E = dE / (-1*dE(0));
-
-
 }
 

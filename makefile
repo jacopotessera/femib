@@ -1,6 +1,6 @@
 CC = /opt/cuda/bin/nvcc --expt-relaxed-constexpr
-DEBUG = -G -O0 #-g -pg
-CFLAGS = -std=c++11
+DEBUG = -G -O0 -g #-pg
+CFLAGS = -std=c++11 -g
 EIGENFLAGS = -I/usr/local/include/eigen3/ -Xcompiler -fopenmp -lgomp
 CPPFLAGS = -lcppunit
 CUDAFLAGS = -L/opt/cuda/lib64 -lcuda -lcudart
@@ -94,14 +94,14 @@ test: test/build/testCuda test/build/testDmat test/build/testRead test/build/tes
 	@./test/build/testGauss
 	@echo "Test TriangleMesh..."
 	@./test/build/testTriangleMesh
-	@echo "Test FiniteElement..."
-	@./test/build/testFiniteElement
 	@echo "Test tensorAlgebra..."
 	@./test/build/testTensorAlgebra
 	@echo "Test mongo..."
 	@./test/build/testMongo
 	@echo "Test utils..."
 	@./test/build/testUtils
+	@echo "Test FiniteElement..."
+	@./test/build/testFiniteElement
 	@echo "Test Simulation..."
 	@./test/build/testSim
 
@@ -135,7 +135,7 @@ prepare:
 
 find:
 	@echo "Searching for '"${1}"' ..."
-	@find src -type f | xargs grep -i "${1}"
+	@find src -type f | xargs grep -in "${1}"
 
 todo:
 	@cat TODO.md

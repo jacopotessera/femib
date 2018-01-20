@@ -105,9 +105,9 @@ void TestSimulation::setUp(void)
 	Parameters parameters;
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
-	parameters.deltarho = 0.0;
-	parameters.kappa = 100.0;
-	parameters.deltat = 0.001;
+	parameters.deltarho = 1.0;
+	parameters.kappa = 10.0;
+	parameters.deltat = 0.0001;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -115,7 +115,7 @@ void TestSimulation::setUp(void)
 	t0.time = 0; t0.id = id;
 	t1.time = 1; t1.id = id;
 
-	double gamma = 1.1;
+	double gamma = 1.0;
 	double R = 0.6;
 	double xC = 0.0;
 	double yC = 0.0;
@@ -144,7 +144,7 @@ void TestSimulation::setUp(void)
 	std::cout << "V mesh radius " << V.T.getMeshRadius() << std::endl;
 	std::cout << "S mesh radius " << S.T.getMeshRadius() << std::endl;
 
-	s = Simulation(db,parameters,V,Q,S,t0,t1);
+	s = Simulation(db,parameters,V,Q,S,L,t0,t1);
 	//s = Simulation(id,db,parameters,V,Q,S,L,t0,t1);
 	//s.getSimulation(db,"");
 	s.prepare();

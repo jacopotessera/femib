@@ -43,6 +43,7 @@ Eigen::Matrix<double,Eigen::Dynamic,1> vector2eigen(const std::vector<double> &v
 
 Eigen::SparseMatrix<double> getColumns(Eigen::SparseMatrix<double> S, const std::vector<int> &x);
 Eigen::SparseMatrix<double> getRows(Eigen::SparseMatrix<double> S, const std::vector<int> &x);
+evec getRows(evec S, const std::vector<int> &x);
 etmat esmat2etmat(const esmat& A);
 etmat esmat2etmat(const esmat& A, int rowDrift, int colDrift);
 esmat etmat2esmat(const etmat &A, int rows, int cols);
@@ -51,6 +52,8 @@ etmat& operator+=(etmat& lhs, const etmat &rhs);
 std::ostream& operator<<(std::ostream& out, const etmat &t);
 
 std::string getTimestamp();
+std::vector<double> join(evec a, evec b, std::vector<int> ne, std::vector<int> e);
+std::ostream& operator<<(std::ostream& out, const std::vector<double> &T);
 
 #endif
 
