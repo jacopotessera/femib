@@ -36,9 +36,9 @@ Gauss createGauss3_1d()
 	dvec v1 = {0.5};
 	dvec v2 = {0.5+0.5*(-sqrt(3.0/5.0))};
 	dvec v3 = {0.5+0.5*( sqrt(3.0/5.0))};
-	double p1 = 8.0/9.0;
-	double p2 = 5.0/9.0;
-	double p3 = 5.0/9.0;
+	double p1 = 8.0/18.0;
+	double p2 = 5.0/18.0;
+	double p3 = 5.0/18.0;
 
 	std::vector<dvec> v = {v1,v2,v3};
 	std::vector<double> p = {p1,p2,p3};
@@ -52,10 +52,10 @@ Gauss createGauss4_1d()
 	dvec v2 = {0.5+0.5*( sqrt(3.0/7.0-2.0/7.0*sqrt(6.0/5.0)))};
 	dvec v3 = {0.5+0.5*(-sqrt(3.0/7.0+2.0/7.0*sqrt(6.0/5.0)))};
 	dvec v4 = {0.5+0.5*( sqrt(3.0/7.0+2.0/7.0*sqrt(6.0/5.0)))};
-	double p1 = (18.0+sqrt(30.0))/36.0;
-	double p2 = (18.0+sqrt(30.0))/36.0;
-	double p3 = (18.0-sqrt(30.0))/36.0;
-	double p4 = (18.0-sqrt(30.0))/36.0;
+	double p1 = (18.0+sqrt(30.0))/72.0;
+	double p2 = (18.0+sqrt(30.0))/72.0;
+	double p3 = (18.0-sqrt(30.0))/72.0;
+	double p4 = (18.0-sqrt(30.0))/72.0;
 
 	std::vector<dvec> v = {v1,v2,v3,v4};
 	std::vector<double> p = {p1,p2,p3,p4};
@@ -71,10 +71,10 @@ Gauss createGauss5_1d()
 	dvec v4 = {0.5+0.5*(1.0/3.0)*(-sqrt(5.0+2.0*sqrt(10.0/7.0)))};
 	dvec v5 = {0.5+0.5*(1.0/3.0)*( sqrt(5.0+2.0*sqrt(10.0/7.0)))};
 	double p1 = (128.0/225.0);
-	double p2 = (322.0+13.0*sqrt(70.0))/900.0;
-	double p3 = (322.0+13.0*sqrt(70.0))/900.0;
-	double p4 = (322.0-13.0*sqrt(70.0))/900.0;
-	double p5 = (322.0-13.0*sqrt(70.0))/900.0;
+	double p2 = (322.0+13.0*sqrt(70.0))/1800.0;
+	double p3 = (322.0+13.0*sqrt(70.0))/1800.0;
+	double p4 = (322.0-13.0*sqrt(70.0))/1800.0;
+	double p5 = (322.0-13.0*sqrt(70.0))/1800.0;
 
 	std::vector<dvec> v = {v1,v2,v3,v4,v5};
 	std::vector<double> p = {p1,p2,p3,p4,p5};

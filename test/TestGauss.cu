@@ -43,6 +43,10 @@ private:
 void
 TestGauss::testIntegration(void)
 {
+	CPPUNIT_ASSERT(abs(g2_1d.integrate(poli2_1d)-5.0/3.0)<0.01);
+	CPPUNIT_ASSERT(abs(g3_1d.integrate(poli2_1d)-5.0/3.0)<0.01);
+	CPPUNIT_ASSERT(abs(g4_1d.integrate(poli2_1d)-5.0/3.0)<0.01);
+
 	CPPUNIT_ASSERT(abs(g2_2d.integrate(poli2_2d)-29.0/24.0)<0.01);
 	CPPUNIT_ASSERT(abs(g5_2d.integrate(poli4_2d)-437.0/360.0)<0.01);
 }

@@ -107,7 +107,7 @@ void TestSimulation::setUp(void)
 	parameters.eta = 0.01;
 	parameters.deltarho = 1.0;
 	parameters.kappa = 10.0;
-	parameters.deltat = 0.0001;
+	parameters.deltat = 0.01;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -115,7 +115,7 @@ void TestSimulation::setUp(void)
 	t0.time = 0; t0.id = id;
 	t1.time = 1; t1.id = id;
 
-	double gamma = 1.0;
+	double gamma = 1.1;
 	double R = 0.6;
 	double xC = 0.0;
 	double yC = 0.0;

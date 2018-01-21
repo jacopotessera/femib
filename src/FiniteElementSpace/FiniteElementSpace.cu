@@ -137,7 +137,7 @@ F FiniteElementSpace::operator()(const std::vector<double> &v, int n)
 void FiniteElementSpace::calc(const std::vector<double> &v)
 {
 	preCalc.clear();
-	for(int n=0;n<nodes.T.size();n++)
+	for(int n=0;n<nodes.T.size();++n)
 	{
 		std::map<dvec,xDx> temp;
 		preCalc.push_back(temp);

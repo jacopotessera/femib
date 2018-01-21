@@ -4,7 +4,15 @@
 
 #include "FiniteElementSpaceL.h"
 
-FiniteElementSpaceL::FiniteElementSpaceL(){}
+FiniteElementSpaceL& FiniteElementSpaceL::operator=(const FiniteElementSpace &finiteElementSpace)
+{
+	T = finiteElementSpace.T;
+	gauss = finiteElementSpace.gauss;
+	finiteElement = finiteElementSpace.finiteElement;
+	buildFiniteElementSpace();
+	buildEdge();
+	return *this;
+}
 
 void FiniteElementSpaceL::buildEdge()
 {

@@ -21,7 +21,6 @@ Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
 	this->full = full;
 	setInitialValues(t0,t1);
 	saveSimulation();
-	//this->time = 2; //TODO
 }
 
 Simulation::~Simulation(){}
@@ -57,30 +56,6 @@ miniSim Simulation::sim2miniSim()
 	mini.S = finiteElementSpace2miniFE(S);
 	mini.L = finiteElementSpace2miniFE(L);
 
-	/*mini.V.finiteElement = this->V.finiteElement.finiteElementName;
-	mini.V.gauss = this->V.gauss.gaussName;
-	mini.V.mesh.P = this->V.T.mesh.P;
-	mini.V.mesh.T = this->V.T.mesh.T;
-	mini.V.mesh.E = this->V.T.mesh.E;
-
-	mini.Q.finiteElement = this->Q.finiteElement.finiteElementName;
-	mini.Q.gauss = this->Q.gauss.gaussName;
-	mini.Q.mesh.P = this->Q.T.mesh.P;
-	mini.Q.mesh.T = this->Q.T.mesh.T;
-	mini.Q.mesh.E = this->Q.T.mesh.E;
-
-	mini.S.finiteElement = this->S.finiteElement.finiteElementName;
-	mini.S.gauss = this->S.gauss.gaussName;
-	mini.S.mesh.P = this->S.T.mesh.P;
-	mini.S.mesh.T = this->S.T.mesh.T;
-	mini.S.mesh.E = this->S.T.mesh.E;
-
-	mini.L.finiteElement = this->L.finiteElement.finiteElementName;
-	mini.L.gauss = this->L.gauss.gaussName;
-	mini.L.mesh.P = this->L.T.mesh.P;
-	mini.L.mesh.T = this->L.T.mesh.T;
-	mini.L.mesh.E = this->L.T.mesh.E;*/
-
 	return mini;
 }
 
@@ -88,7 +63,7 @@ void Simulation::saveSimulation()
 {
 	save_sim(db, sim2miniSim());
 	saveTimestep(0);
-	//savePlotData(0);
+	//savePlotData(0); //TODO
 	saveTimestep(1);
 	//savePlotData(1);
 }
@@ -102,39 +77,20 @@ void Simulation::getSimulation(dbconfig db,std::string id)
 	this->full = mini.full;
 
 	V = miniFE2FiniteElementSpace(mini.V,gaussService,finiteElementService);
-	//Q = miniFE2FiniteElementSpace(mini.Q,gaussService,finiteElementService);
-	//S = miniFE2FiniteElementSpace(mini.S,gaussService,finiteElementService);
-	//L = miniFE2FiniteElementSpace(mini.L,gaussService,finiteElementService);
-	
-	/*TriangleMesh TV = TriangleMesh(mini.V.mesh,gaussService.getGauss(mini.V.gauss));
-	TV.loadOnGPU();
-	V = FiniteElementSpaceV(TV,finiteElementService.getFiniteElement(mini.V.finiteElement),gaussService.getGauss(mini.V.gauss));
-	V.buildFiniteElementSpace();
-	V.buildEdge();*/ //TODO
-
-	TriangleMesh TQ = TriangleMesh(mini.Q.mesh,gaussService.getGauss(mini.Q.gauss));
-	TQ.loadOnGPU();
-	Q = FiniteElementSpaceQ(TQ,finiteElementService.getFiniteElement(mini.Q.finiteElement),gaussService.getGauss(mini.Q.gauss));
-	Q.buildFiniteElementSpace();
-	Q.buildEdge();
-
-	TriangleMesh TS = TriangleMesh(mini.S.mesh,gaussService.getGauss(mini.S.gauss));
-	TS.loadOnGPU();
-	S = FiniteElementSpaceS(TS,finiteElementService.getFiniteElement(mini.S.finiteElement),gaussService.getGauss(mini.S.gauss));
-	S.buildFiniteElementSpace();
-	S.buildEdge();
-
-	TriangleMesh TL = TriangleMesh(mini.L.mesh,gaussService.getGauss(mini.L.gauss));
-	TL.loadOnGPU();
-	L = FiniteElementSpaceL(TL,finiteElementService.getFiniteElement(mini.L.finiteElement),gaussService.getGauss(mini.L.gauss));
-	L.buildFiniteElementSpace();
-	L.buildEdge();/**/
+	Q = miniFE2FiniteElementSpace(mini.Q,gaussService,finiteElementService);
+	S = miniFE2FiniteElementSpace(mini.S,gaussService,finiteElementService);
+	L = miniFE2FiniteElementSpace(mini.L,gaussService,finiteElementService);
 
 	int time = get_time(db,id);
 	for(int i=0;i<time;++i)
 	{
 		timesteps.push_back(getTimestep(i));
 	}
+}
+
+int Simulation::getTime()
+{
+	return timesteps.size()-1;
 }
 
 void Simulation::saveTimestep(int time)
@@ -144,8 +100,7 @@ void Simulation::saveTimestep(int time)
 
 void Simulation::saveTimestep()
 {
-	int time = timesteps.size();
-	saveTimestep(time-1); //TODO
+	saveTimestep(getTime());
 }
 
 timestep Simulation::getTimestep(int time)
@@ -235,17 +190,16 @@ void Simulation::savePlotData(int time)
 
 void Simulation::savePlotData()
 {
-	int time = timesteps.size();
-	savePlotData(time-1); //TODO
+	savePlotData(getTime());
 }
 
 void Simulation::buildEdge()
 {
-	if(full){
+	if(full)
+	{
 		edge = V.edge;
 		edge = join(edge,Q.edge+V.spaceDim);
 		edge = join(edge,S.edge+(V.spaceDim+Q.spaceDim));
-
 		notEdge = setdiff(linspace(V.spaceDim+Q.spaceDim+S.spaceDim+L.spaceDim),V.edge);
 		notEdge = setdiff(notEdge,Q.edge+V.spaceDim);
 		notEdge = setdiff(notEdge,S.edge+(V.spaceDim+Q.spaceDim));
@@ -254,7 +208,6 @@ void Simulation::buildEdge()
 	{
 		edge = V.edge;
 		edge = join(edge,Q.edge+V.spaceDim);
-
 		notEdge = setdiff(linspace(V.spaceDim+Q.spaceDim),V.edge);
 		notEdge = setdiff(notEdge,Q.edge+V.spaceDim);
 	}
@@ -262,44 +215,41 @@ void Simulation::buildEdge()
 
 void Simulation::prepare()
 {
-	buildEdge();
-std::cout << "buildFluidMatrices..." << std::endl;
-	buildFluidMatrices();
+	std::cout << "buildEdge..." << std::endl;buildEdge();
+	std::cout << "buildFluidMatrices..." << std::endl;buildFluidMatrices();
 	if(full)
 	{
-std::cout << "buildStructureMatrices..." << std::endl;
-		buildStructureMatrices();
-std::cout << "buildMultiplierMatrices..." << std::endl;
-		buildMultiplierMatrices();
+		std::cout << "buildStructureMatrices..." << std::endl;buildStructureMatrices();
+		std::cout << "buildMultiplierMatrices..." << std::endl;buildMultiplierMatrices();
 	}
 	//TODO creare matrice sparse qui
 }
 
 void Simulation::advance()
 {
-	this->advance(1);
+	std::cout << "clear..." << std::endl;clear();
+	std::cout << "buildK2f..." << std::endl;buildK2f();
+	if(full)
+	{
+		std::cout << "buildLf..." << std::endl;buildLf();
+	}
+	else
+	{
+		std::cout << "buildF..." << std::endl;buildF();
+	}
+	std::cout << "triplet2sparse..." << std::endl;triplet2sparse();
+	std::cout << "buildb..." << std::endl;buildb();
+	std::cout << "solve..." << std::endl;solve();
+	std::cout << "save..." << std::endl;save();
+	std::cout << "savePlotData..." << std::endl;savePlotData();
+	std::cout << "Done." << std::endl;
 }
 
 void Simulation::advance(int steps)
 {
 	for(int i=0;i<steps;++i)
 	{
-		std::cout << "clear..." << std::endl;clear();
-		std::cout << "buildK2f..." << std::endl;buildK2f();
-		if(full)
-		{
-			std::cout << "buildLf..." << std::endl;buildLf();
-		}
-		else
-		{
-			std::cout << "buildF..." << std::endl;buildF();
-		}
-		std::cout << "triplet2sparse..." << std::endl;triplet2sparse();
-		std::cout << "buildb..." << std::endl;buildb();
-		std::cout << "solve..." << std::endl;solve();
-		std::cout << "save..." << std::endl;save();
-		std::cout << "savePlotData..." << std::endl;savePlotData();
-		std::cout << "Done." << std::endl;
+		this->advance();
 	}
 }
 
@@ -323,7 +273,6 @@ void Simulation::buildFluidMatrices()
 				double valK1f = V.T.integrate(pf(symm(a.dx),symm(b.dx)),n);
 				assert(a.i < V.spaceDim && b.i < V.spaceDim);
 				assert(a.mini_i < (V.spaceDim-V.nBT) && b.mini_i < (V.spaceDim-V.nBT));
-
 				if(valMf!=0)
 				{
 					Mf.push_back(Eigen::Triplet<double>(a.i,b.i,valMf));
@@ -356,9 +305,7 @@ void Simulation::buildFluidMatrices()
 	}
 	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(V.spaceDim,Q.spaceDim);
 	sB.setFromTriplets(B.begin(),B.end());
-
 	etmat temp = esmat2etmat(compress(Q.applyEdgeCondition(sB),Q,V),0,(V.spaceDim-V.nBT));
-
 	C+=temp;
 	C+=transpose(temp);
 }
@@ -394,33 +341,21 @@ void Simulation::buildMultiplierMatrices()
 	etmat Bs;
 	for(int n=0;n<S.nodes.T.size();++n)
 	{
-		for(int i=0;i<S.baseFunction.size();++i)
+		for(int i=0;i<L.baseFunction.size();++i)
 		{
-			BaseFunction a = S.getBaseFunction(i,n);
-			for(int j=0;j<L.baseFunction.size();++j)
+			BaseFunction a = L.getBaseFunction(i,n);
+			for(int j=0;j<S.baseFunction.size();++j)
 			{
-				BaseFunction b = L.getBaseFunction(j,n);
-				double valLs = S.T.integrate(ddot(a.x,b.x),n); //+pf(a.dx,b.dx)
+				BaseFunction b = S.getBaseFunction(j,n);
+				double valLs = S.T.integrate(ddot(a.x,b.x),n);
 				Ls.push_back(Eigen::Triplet<double>(a.i,b.i,valLs));
 				Bs.push_back(Eigen::Triplet<double>(a.i,b.i,-(1.0/parameters.deltat)*valLs));
-				//if(a.mini_i!=-1 && b.mini_i!=-1)
-				//{
-				//	if(valLs!=0)
-				//	{
-				//		C.push_back(Eigen::Triplet<double>(a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),b.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),-valLs));
-				//		C.push_back(Eigen::Triplet<double>(b.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),-valLs));
-				//	}
-				//}
 			}
 		}
 	}
-	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(S.spaceDim,L.spaceDim);
+	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(L.spaceDim,S.spaceDim);
 	sB.setFromTriplets(Bs.begin(),Bs.end());
-std::cout << S.spaceDim << std::endl;
-std::cout << S.nBT << std::endl;
-std::cout << S.E << std::endl;
-
-	etmat temp = esmat2etmat(compress(S.applyEdgeCondition(sB),S,L),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT));
+	etmat temp = esmat2etmat(compress(S.applyEdgeCondition(sB),S,L),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT));
 	C+=temp;
 	C+=transpose(temp);
 }
@@ -454,34 +389,23 @@ void Simulation::buildK2f()
 void Simulation::buildLf()
 {
 	int time = timesteps.size();
-std::cout << time << std::endl;
 	std::vector<std::vector<dvec>> yyy = S.getValuesInGaussNodes(timesteps[time-1].x);
 	MM = V.collisionDetection(yyy);
 	S.calc(timesteps[time-1].x);
 	for(int n=0;n<S.nodes.T.size();++n)
 	{
 		F preS = S.getPreCalc(n);
-assert(MM[n].size()!=0);
+		assert(MM[n].size()!=0);
 		for(int k=0;k<MM[n].size();++k)
 		{
 			int m=MM[n][k];
-//std::cout << "m = " << m << std::endl;
 			for(int i=0;i<L.baseFunction.size();++i)
 			{
 				BaseFunction a = L.getBaseFunction(i,n);
-				//std::function<dvec(dvec)> a = [&](const dvec &x){return S.baseFunction[i].x(S.T.Binv[n]*(x-S.T.b[n]));};
-				//std::function<dmat(dvec)> Da = [&](const dvec &x){return S.baseFunction[i].dx(S.T.Binv[n]*(x-S.T.b[n]))*S.T.Binv[n];};
-				//int i_ = S.getIndex(i,n);
-				//int i0 = S.getMiniIndex(i,n);
 				for(int j=0;j<V.baseFunction.size();++j)
 				{
 					BaseFunction b = V.getBaseFunction(j,m);
-					//std::function<dvec(dvec)> b = [&](const dvec &x){return V.baseFunction[j].x(V.T.Binv[m]*(x-V.T.b[m]));};
-					//std::function<dmat(dvec)> Db = [&](const dvec &x){return V.baseFunction[j].dx(V.T.Binv[m]*(x-V.T.b[m]))*V.T.Binv[m];};
-					//int j_ = V.getIndex(j,m);
-					//int j0 = V.getMiniIndex(j,m);
-					//F dB = {b,Db};
-					double valLf = S.T.integrate(ddot(a.x,compose(b.f,preS).x),n); //pf(a.dx,compose(b.f,preS).dx)+
+					double valLf = S.T.integrate(ddot(a.x,compose(b.f,preS).x),n);
 					if(valLf!=0)
 					{
 						Lf.push_back(Eigen::Triplet<double>(a.i,b.i,valLf));
@@ -513,25 +437,11 @@ void Simulation::buildF()
 			assert(m>-1);
 			for(int i=0;i<V.baseFunction.size();++i)
 			{
-				/*std::function<dvec(dvec)> a = [&](const dvec &x){return V.baseFunction[i].x(V.T.Binv[m]*(x-V.T.b[m]));};
-				std::function<dmat(dvec)> Da = [&](const dvec &x){return V.baseFunction[i].dx(V.T.Binv[m]*(x-V.T.b[m]))*V.T.Binv[m];};
-				int i_ = V.getIndex(i,m);
-				int i0 = V.getMiniIndex(i,m);
-				F dA = {a,Da};*/
-
 				BaseFunction a = V.getBaseFunction(i,m);
-				double valF = S.T.integrate(pf(S(timesteps[time-1].x,n).dx,compose(a.f,S(timesteps[time-1].x,n)).dx),n); //WAT?
-
+				double valF = S.T.integrate(pf(S(timesteps[time-1].x,n).dx,compose(a.f,S(timesteps[time-1].x,n)).dx),n);
 				FF(a.i) += (-parameters.kappa)*valF; //WAT2
-
 				for(int j=0;j<V.baseFunction.size();++j)
 				{
-					/*std::function<dvec(dvec)> b = [&](const dvec &x){return V.baseFunction[j].x(V.T.Binv[m]*(x-V.T.b[m]));};
-					std::function<dmat(dvec)> Db = [&](const dvec &x){return V.baseFunction[j].dx(V.T.Binv[m]*(x-V.T.b[m]))*V.T.Binv[m];};
-					int j_ = V.getIndex(j,m);
-					int j0 = V.getMiniIndex(j,m);
-					F dB = {b,Db};*/
-
 					BaseFunction b = V.getBaseFunction(j,m);
 					double valMB = S.T.integrate(ddot(compose(a.f,S(timesteps[time-1].x,n)).x,compose(b.f,S(timesteps[time-1].x,n)).x),n);
 					if(valMB!=0)
@@ -599,8 +509,6 @@ void Simulation::buildb()
 		,getRows(o,Q.notEdge)
 		,getRows(g,S.notEdge)
 		,getRows(d,L.notEdge);
-
-
 
 		/*for(int i=0;i<V.spaceDim+Q.spaceDim+S.spaceDim+L.spaceDim;++i)
 		{
@@ -682,7 +590,7 @@ void Simulation::updateX()
 	timesteps[time].x = timesteps[time-1].x+parameters.deltat*uu;
 }
 
-timestep Simulation::eigen2timestep(evec a) //TODO: implementare gestione bordi
+timestep Simulation::eigen2timestep(evec a)
 {
 	timestep t;
 	std::cout << "eigen2timestep" << std::endl;
@@ -703,10 +611,10 @@ timestep Simulation::eigen2timestep(evec a) //TODO: implementare gestione bordi
 	//std::vector<double> tL = join(bL,aL,L.notEdge,L.edge);
 	std::cout << "fine eigen2timestep" << std::endl;
 
-	std::cout << tV << std::endl;
-	std::cout << tQ << std::endl;
-	std::cout << tS << std::endl;
-	std::cout << eigen2vector(bL) << std::endl;
+	//std::cout << tV << std::endl;
+	//std::cout << tQ << std::endl;
+	//std::cout << tS << std::endl;
+	//std::cout << eigen2vector(bL) << std::endl;
 
 	t.u = tV;
 	t.q = tQ;
@@ -782,7 +690,6 @@ void Simulation::solve()
 		solver.compute(sCt);
 		evec v = solver.solve(b);
 		timesteps.push_back(eigen2timestep(v));
-		time++; //TODO
 	}
 	else
 	{
@@ -799,6 +706,6 @@ void Simulation::solve()
 		evec v = solver.solve(b);
 		timesteps.push_back(eigen2timestep(v));
 		updateX();
-		time++; //TODO
 	}
 }
+

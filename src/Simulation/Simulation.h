@@ -65,7 +65,6 @@ class Simulation
 		std::vector<int> edge;
 		std::vector<int> notEdge;
 
-		int time; //TODO
 		std::vector<timestep> timesteps;
 
 		Simulation();
@@ -99,6 +98,8 @@ class Simulation
 		miniSim sim2miniSim();
 		void saveSimulation();
 		void getSimulation(dbconfig db,std::string id);
+
+		int getTime();
 
 		timestep eigen2timestep(evec a);
 		void saveTimestep(int time);

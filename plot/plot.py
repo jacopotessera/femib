@@ -62,7 +62,7 @@ if op_ == "delete":
 
 sim = simCollection.find({"id" : id_},{"S.mesh" : 1,"parameters" : 1})
 deltat = sim[0]["parameters"]["deltat"]
-timesteps = timestepCollection.find({"id" : id_},{"time" : 1, "x" : 1})
+timesteps = timestepCollection.find({"id" : id_},{"time" : 1, "x" : 1,"u": 1,"q": 1})
 TMAX = timestepCollection.find({"id" : id_},{"time" : 1, "x" : 1}).sort([("time", pymongo.DESCENDING)]).limit(1)[0]["time"]
 
 T = []
@@ -73,9 +73,14 @@ E = []
 
 U = []
 V = []
-XX, YY = numpy.mgrid[x_min:x_max:steps*1j, y_min:y_max:steps*1j]
-XXX = numpy.linspace(x_min,x_max,steps+1)
-YYY = numpy.linspace(y_max,y_min,steps+1)
+
+#XXX = numpy.linspace(x_min,x_max,steps+1)
+#YYY = numpy.linspace(y_max,y_min,steps+1)
+XXX = numpy.arange(x_min,x_max+0.1,0.1)
+YYY = numpy.arange(y_min,y_max+0.1,0.1)
+
+#XX, YY = numpy.mgrid[x_min:x_max:steps*1j, y_min:y_max:steps*1j]
+XX, YY = numpy.meshgrid(XXX,YYY)
 P = []
 
 for t in timesteps:
@@ -90,6 +95,21 @@ for t in timesteps:
 		X.append(xx)
 		Y.append(yy)
 		size = len(xx)
+		uu = list(map(lambda x : x[1][0],t["u"] ))
+		vv = list(map(lambda x : x[1][1],t["u"] ))
+
+		pp = []
+		print(len(t["q"]))
+		for ii in range(len(t["q"])):
+			if ii%21==0:
+				pp.append([])
+			pp[-1].append(t["q"][ii][1][0])
+
+		#pp = list(map(lambda x : x[1][0],t["q"] ))
+
+		U.append(uu)
+		V.append(vv)
+		P.append(pp)
 
 		area = abs (reduce( (lambda x,y : x+y ) , map( lambda x : 0.5*(x[0]*x[3]-x[1]*x[2]) ,zip(xx,yy,numpy.roll(xx,-1),numpy.roll(yy,-1)) ) ) )
 		A.append(area/area0)
@@ -120,14 +140,13 @@ def update(i):
 	#label = 'timestep {0},time {3:.2f}, area {1:.4f}, ratio {2:.4f}'.format(ffw*i,area/area0,_min/_max,ffw*i*0.01)
 	label = 'time {0:.2f}'.format(T[i])	
 	ax[0][0].set_xlabel(label)
-	#ax[0][0].quiver(XXX,YYY,U[i],V[i],pivot='mid', units='inches')
-	'''
+	ax[0][0].quiver(XX,YY,U[i],V[i],pivot='mid',units='inches')
 	ax[0][1].cla()
 	ax[0][1].set_xlim([-1,1])
 	ax[0][1].set_ylim([-1,1])
 	label = 'time {0:.2f}'.format(T[i])	
 	ax[0][1].set_xlabel(label)
-	ax[0][1].quiver(XXX,YYY,U[i],V[i],pivot='mid',width=0.005)
+	ax[0][1].quiver(XX,YY,U[i],V[i],pivot='mid',width=0.005)
 	
 	ax[0][2].cla()
 	ax[0][2].set_xlim([-1,1])
@@ -137,9 +156,8 @@ def update(i):
 	matplotlib.rcParams['xtick.direction'] = 'out'
 	matplotlib.rcParams['ytick.direction'] = 'out'
 	matplotlib.rcParams['contour.negative_linestyle'] = 'dashed'
-	cs = ax[0][2].contour(XXX,YYY,P[i],10,colors='k')
+	cs = ax[0][2].contour(XX,YY,P[i])#,10,colors='k'
 	ax[0][2].clabel(cs, inline=1, fontsize=10)
-	'''
 	ax[1][0].cla()
 	ax[1][0].plot(T[:i],A[:i],"-")
 	ax[1][0].set_xlim([0,T[-1]])

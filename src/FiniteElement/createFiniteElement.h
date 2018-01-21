@@ -8,6 +8,18 @@
 #include "../utils/utils.h"
 #include "FiniteElement.h"
 
+dvec findCenterOf(const Mesh &mesh, int n)
+{
+	dvec c;
+	c.size = mesh.P[0].size;
+	double k = 1.0/mesh.T[n].size;
+	for(int j=0;j<mesh.T[n].size;++j)
+	{
+		c = c + k*mesh.P[mesh.T[n](j)];
+	}
+	return c;
+}
+
 FiniteElement createFiniteElementP0_2d2d()
 {
 	F f;
@@ -70,6 +82,7 @@ FiniteElement createFiniteElementP1_2d2d()
 	FiniteElement P1_2d2d;
 	P1_2d2d.finiteElementName = "P1_2d2d";
 	P1_2d2d.size = 6;
+	P1_2d2d.ambientDim = 2;
 	P1_2d2d.buildNodes = [](const Mesh &mesh)
 	{
 		Nodes nodes;
@@ -204,18 +217,16 @@ FiniteElement createFiniteElementP0_2d1d()
 	FiniteElement P0_2d1d;
 	P0_2d1d.finiteElementName = "P0_2d1d";
 	P0_2d1d.size = 1;
+	P0_2d1d.ambientDim = 1;
 	P0_2d1d.buildNodes = [](const Mesh &mesh)
 	{
 		Nodes nodes;
-		nodes.P = mesh.P;
 		for(int n=0;n<mesh.T.size();++n)
 		{
 			std::vector<int> row;
 			nodes.T.push_back(row);
-			for(int i=0;i<mesh.T[n].size;++i)
-			{
-				nodes.T[n].push_back(mesh.T[n](i));
-			}
+			nodes.P.push_back(findCenterOf(mesh,n));
+			nodes.T[n].push_back(n);
 		}
 		nodes.E = mesh.E;
 		return nodes;
@@ -334,18 +345,6 @@ Nodes mesh2nodes(const Mesh &mesh)
 	}
 	nodes.E = mesh.E;
 	return nodes;
-}
-
-dvec findCenterOf(const Mesh &mesh, int n)
-{
-	dvec c;
-	c.size = mesh.P[0].size;
-	double k = 1.0/mesh.T[n].size;
-	for(int j=0;j<mesh.T[n].size;++j)
-	{
-		c = c + k*mesh.P[mesh.T[n](j)];
-	}
-	return c;
 }
 
 FiniteElement createFiniteElementP1P0_2d1d()

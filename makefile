@@ -8,7 +8,7 @@ MONGOFLAGS = -L/lib -L/usr/local/lib -I/usr/local/include/mongocxx/v_noabi -I/us
 DATETIME=`date +"%Y-%m-%d_%H:%M:%S"`
 
 VPATH = src/Cuda:src/dmat:src/read:src/affine:src/Gauss:src/TriangleMesh:src/FiniteElement:src/FiniteElementSpace:src/utils:src/tensorAlgebra:src/mongodb:src/Simulation
-.PHONY : test clean plot doc prepare find
+.PHONY : test clean plot doc prepare find todo
 
 build/mongodb_impl.o: mongodb_impl.cpp mongodb_impl.h
 	@echo -n "Compiling $@..."
