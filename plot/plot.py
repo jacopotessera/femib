@@ -3,6 +3,7 @@
 import os
 import sys
 import csv
+import math
 import numpy
 import matplotlib.pyplot as pyplot
 from matplotlib.animation import FuncAnimation
@@ -15,6 +16,21 @@ from pymongo import MongoClient
 import pymongo
 import pandas
 import pprint
+
+def parse_id(i):
+	ret = []
+	I = i.split(":")
+	if len(I)==2:
+		for j in range(int(I[0]),int(I[1])+1):
+			ret.append(j)
+		return ret
+	J = i.split(",")
+	if len(J)>1:
+		for j in J:
+			ret.append(int(j))
+		return ret
+	ret.append(int(i))
+	return ret
 
 ffw = 40
 area0 = numpy.pi*0.6*0.6
@@ -48,16 +64,21 @@ if len(sys.argv)==1:
 	sys.exit()
 elif len(sys.argv)==2:
 	id_ = sims[int(sys.argv[1])-1]["id"]
+	op_ = "plot"
 	print("Plotting Simulation with id "+id_)
 else:
-	id_ = sims[int(sys.argv[1])-1]["id"]
+	ids__ = parse_id(sys.argv[1])
+	ids_ = []
+	for ii in ids__:
+		ids_.append(sims[ii-1]["id"])
 	op_ = sys.argv[2]
 
 if op_ == "delete":
-	print("Deleting Simulation with id "+id_+" ...")
-	simCollection.delete_many({"id" : id_})
-	timestepCollection.delete_many({"id" : id_})
-	rawTimestepCollection.delete_many({"id" : id_})
+	for id_ in ids_:
+		print("Deleting Simulation with id "+id_+" ...")
+		simCollection.delete_many({"id" : id_})
+		timestepCollection.delete_many({"id" : id_})
+		rawTimestepCollection.delete_many({"id" : id_})
 	sys.exit()
 
 sim = simCollection.find({"id" : id_},{"S.mesh" : 1,"parameters" : 1})
@@ -82,6 +103,8 @@ YYY = numpy.arange(y_min,y_max+0.1,0.1)
 #XX, YY = numpy.mgrid[x_min:x_max:steps*1j, y_min:y_max:steps*1j]
 XX, YY = numpy.meshgrid(XXX,YYY)
 P = []
+X__ = []
+Y__ = []
 
 for t in timesteps:
 
@@ -91,15 +114,28 @@ for t in timesteps:
 		xx = list(map(lambda x : x[1][0],t["x"] ))
 		yy = list(map(lambda x : x[1][1],t["x"] ))
 		
+		xx_ = xx[0:int(len(xx)/2)-1]
+		yy_ = yy[0:int(len(yy)/2)-1]
+		xx__ = xx[int(len(xx)/2):int(len(xx))-1]
+		yy__ = yy[int(len(yy)/2):int(len(yy))-1]
+
+		xx_.append(xx_[0])
+		yy_.append(yy_[0])
+
+		xx__.append(xx__[0])
+		yy__.append(yy__[0])
+
 		T.append(t["time"]*deltat)
-		X.append(xx)
-		Y.append(yy)
-		size = len(xx)
+		X.append(xx_)
+		Y.append(yy_)
+
+		X__.append(xx__)
+		Y__.append(yy__)
+
 		uu = list(map(lambda x : x[1][0],t["u"] ))
 		vv = list(map(lambda x : x[1][1],t["u"] ))
 
 		pp = []
-		print(len(t["q"]))
 		for ii in range(len(t["q"])):
 			if ii%21==0:
 				pp.append([])
@@ -110,7 +146,7 @@ for t in timesteps:
 		U.append(uu)
 		V.append(vv)
 		P.append(pp)
-
+		size = len(xx)
 		area = abs (reduce( (lambda x,y : x+y ) , map( lambda x : 0.5*(x[0]*x[3]-x[1]*x[2]) ,zip(xx,yy,numpy.roll(xx,-1),numpy.roll(yy,-1)) ) ) )
 		A.append(area/area0)
 
@@ -123,7 +159,10 @@ for t in timesteps:
 	
 		delta = str( (E[-1]["e"]) - (E[-2]["e"])) if len(E)>1 else "0"
 
-		print(str(t["time"]) + ": area = " + str(area/area0) + " " +str(aa) + " " +str(AA) + " " +str(aa/AA)+ " " +str(_min/_max) + " " +  delta )
+		real_e = math.sqrt(1-((_min)**2/(_max)**2))
+
+		#print(str(t["time"]) + ": area = " + str(area/area0) + " " +str(aa) + " " +str(AA) + " " +str(aa/AA)+ " " +str(_min/_max) + " " +  delta )
+		print(str(t["time"]) + ": area = " + str(area/area0) + ", e = " +str(aa/AA))
 
 fig, ax = pyplot.subplots(2,3)
 fig.set_tight_layout(True)
@@ -135,6 +174,7 @@ def update(i):
 
 	ax[0][0].cla()
 	ax[0][0].plot(X[i],Y[i],".-")
+	ax[0][0].plot(X__[i],Y__[i],".-",color="red")
 	ax[0][0].set_xlim([-1,1])
 	ax[0][0].set_ylim([-1,1])
 	#label = 'timestep {0},time {3:.2f}, area {1:.4f}, ratio {2:.4f}'.format(ffw*i,area/area0,_min/_max,ffw*i*0.01)

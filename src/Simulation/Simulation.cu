@@ -150,7 +150,7 @@ plotData Simulation::timestep2plotData(timestep t)
 		p.q.push_back({dvec2vector(G[i]),dvec2vector(qq)});
 	}
 
-	std::vector<std::vector<double>> boxS = S.T.getBox();
+	/*std::vector<std::vector<double>> boxS = S.T.getBox();
 	double stepS = 1;
 
 	std::vector<dvec> H;
@@ -178,7 +178,18 @@ plotData Simulation::timestep2plotData(timestep t)
 		assert(N[i]!=-1);
 		dvec ss = S(timesteps[p.time].x,N[i]).x(H[i]);
 		p.x.push_back({dvec2vector(H[i]),dvec2vector(ss)});
-	}
+	}*/
+
+	for(dvec pp : S.nodes.P)
+	{
+		int m = S.collisionDetection({pp})[0];
+		dvec s = S(timesteps[p.time].x,m).x(pp);
+std::cout << "x---" << std::endl;
+std::cout << pp << std::endl;
+std::cout << s << std::endl;
+std::cout << std::endl;
+		p.x.push_back({dvec2vector(pp),dvec2vector(s)});
+	}	
 
 	return p;
 }
@@ -603,8 +614,12 @@ timestep Simulation::eigen2timestep(evec a)
 	std::vector<double> tQ = join(bQ,aQ,Q.notEdge,Q.edge);
 
 	evec bS = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT,0,S.spaceDim-S.nBT,1);
-	evec aS = getColumns(S.E.sparseView(),S.notEdge)*bS;
-	std::vector<double> tS = join(bS,aS,S.notEdge,S.edge);
+	//evec aS = getColumns(S.E.sparseView(),S.notEdge)*bS;
+	//std::vector<double> tS = join(bS,aS,S.notEdge,S.edge);
+
+//std::cout << S.E*vector2eigen(tS) << std::endl;
+//std::cout << "[ " << tS[0] << " , " << tS[65] << " ]" << std::endl;
+//std::cout << "[ " << tS[64] << " , " << tS[129] << " ]" << std::endl;
 
 	evec bL = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT+S.spaceDim-S.nBT,0,L.spaceDim-L.nBT,1);
 	//evec aL = getColumns(L.E.sparseView(),L.notEdge)*bL;
@@ -618,7 +633,8 @@ timestep Simulation::eigen2timestep(evec a)
 
 	t.u = tV;
 	t.q = tQ;
-	t.x = tS;
+	//t.x = tS;
+	t.x = eigen2vector(bS);
 	t.l = eigen2vector(bL);
 
 	/*int j=0;

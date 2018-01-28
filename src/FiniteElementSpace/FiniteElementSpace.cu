@@ -432,7 +432,10 @@ FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &g
 
 Eigen::SparseMatrix<double> FiniteElementSpace::applyEdgeCondition(const Eigen::SparseMatrix<double>& S)
 {
-	return S + gC(S)*E;
+	if(edge.size()>0)
+		return S + gC(S)*E;
+	else
+		return S;
 }
 
 Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace &E, const FiniteElementSpace &F)

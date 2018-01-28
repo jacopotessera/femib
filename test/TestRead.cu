@@ -5,7 +5,6 @@
 #include "../lib/cppunit.h"
 
 #include "../src/read/read.h"
-//#include "../src/read/read_old.h"
 
 class TestRead : public CppUnit::TestFixture
 {
@@ -24,8 +23,6 @@ private:
 
 	std::vector<dvec> meshP;
 	std::vector<ditrian> meshT;
-	//std::vector<dvec> meshP_old;
-	//std::vector<ditrian> meshT_old;
 };
 
 void
@@ -39,8 +36,11 @@ void TestRead::setUp(void)
 {
 	meshP = read<dvec,double>("mesh/P1d1d.mat");
 	meshT = read<ditrian,int>("mesh/T1d1d.mat");
-	//meshP_old = read_old<dvec,double>("mesh_old/P1d1d.mat");
-	//meshT_old = read_old<ditrian,int>("mesh_old/T1d1d.mat");
+	try
+	{
+		meshP = read<dvec,double>("mat.mat");
+	}
+	catch(const std::invalid_argument& e){}
 }
 
 void TestRead::tearDown(void)

@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <thread>
-#include <mutex>
 
 #include <Eigen/Eigen>
 
