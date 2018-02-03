@@ -5,6 +5,8 @@
 #ifndef MONGODB_H_INCLUDED_
 #define MONGODB_H_INCLUDED_
 
+#include "../../lib/Log.h"
+
 void drop(dbconfig db);
 void save_sim(dbconfig db, miniSim sim);
 miniSim get_sim(dbconfig db, std::string id);

@@ -1,12 +1,14 @@
 CC = /opt/cuda/bin/nvcc --expt-relaxed-constexpr
-DEBUG = -G -O0 -g #-pg
-CFLAGS = -std=c++11 -g
+DEBUG = -G -O3 #-g -pg
+CFLAGS = -std=c++11
 EIGENFLAGS = -I/usr/local/include/eigen3/ -Xcompiler -fopenmp -lgomp
-CPPFLAGS = -lcppunit
+CPPUNITFLAGS = -lcppunit
 CUDAFLAGS = -L/opt/cuda/lib64 -lcuda -lcudart
 MONGOFLAGS = -L/lib -L/usr/local/lib -I/usr/local/include/mongocxx/v_noabi -I/usr/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/include/libbson-1.0 -lmongocxx -lbsoncxx -l:libmongocxx.so._noabi -l:libbsoncxx.so._noabi
+LIBLOG = lib/logger/build/Log.o
 DATETIME=`date +"%Y-%m-%d_%H:%M:%S"`
-
+#ln -rs lib/logger/src/Log.h lib/Log.h
+#ln -rs lib/logger/build/Log.o lib/Log.o
 VPATH = src/Cuda:src/dmat:src/read:src/affine:src/Gauss:src/TriangleMesh:src/FiniteElement:src/FiniteElementSpace:src/utils:src/tensorAlgebra:src/mongodb:src/Simulation
 .PHONY : test clean plot doc prepare find todo
 
@@ -27,57 +29,57 @@ build/%.o: %.cu %.h
 
 test/build/testCuda: test/TestCuda.cu build/Cuda.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testCuda $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testCuda $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testDmat: test/TestDmat.cu build/dmat.o build/Cuda.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testDmat $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testDmat $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testRead: test/TestRead.cu build/dmat.o build/read.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testRead $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testRead $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testAffine: test/TestAffine.cu build/dmat.o build/read.o build/affine.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testAffine $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testAffine $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testGauss: test/TestGauss.cu build/dmat.o build/Gauss.o build/GaussService.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testGauss $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testGauss $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testTriangleMesh: test/TestTriangleMesh.cu build/dmat.o build/affine.o build/read.o build/Gauss.o build/GaussService.o build/TriangleMesh.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testTriangleMesh $^ $(CFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testTriangleMesh $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testTensorAlgebra: test/TestTensorAlgebra.cu build/dmat.o build/affine.o build/read.o build/Gauss.o build/GaussService.o build/TriangleMesh.o build/FiniteElementSpace.o build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o build/tensorAlgebra.o build/FiniteElement.o build/FiniteElementService.o build/utils.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testTensorAlgebra $^ $(CFLAGS) $(EIGENFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testTensorAlgebra $^ $(LIBLOG) $(CFLAGS) $(EIGENFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testFiniteElement: test/TestFiniteElement.cu build/dmat.o build/affine.o build/read.o build/Gauss.o build/TriangleMesh.o build/FiniteElementSpace.o build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o build/tensorAlgebra.o build/GaussService.o build/FiniteElement.o build/FiniteElementService.o build/utils.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testFiniteElement $^ $(CFLAGS) $(EIGENFLAGS) $(CPPFLAGS)
+	@$(CC) -o test/build/testFiniteElement $^ $(LIBLOG) $(CFLAGS) $(EIGENFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
 test/build/testMongo: test/TestMongo.cu build/dmat.o build/read.o build/mongodb_impl.o build/mongodb.o 
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testMongo $^ $(CFLAGS) $(CPPFLAGS) $(MONGOFLAGS)
+	@$(CC) -o test/build/testMongo $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS) $(MONGOFLAGS)
 	@echo " Done."
 
 test/build/testUtils: test/TestUtils.cu build/affine.o build/Gauss.o build/GaussService.o build/dmat.o build/Cuda.o build/TriangleMesh.o build/FiniteElementSpace.o build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o  build/tensorAlgebra.o build/read.o build/FiniteElement.o build/FiniteElementService.o build/utils.o
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testUtils $^ $(CFLAGS) $(CPPFLAGS) $(EIGENFLAGS)
+	@$(CC) -o test/build/testUtils $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS) $(EIGENFLAGS)
 	@echo " Done."
 
 test/build/testSim: test/TestSim.cu build/affine.o build/Gauss.o build/GaussService.o build/dmat.o build/Cuda.o build/TriangleMesh.o build/FiniteElementSpace.o build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o  build/tensorAlgebra.o build/read.o build/mongodb_impl.o build/mongodb.o build/FiniteElement.o build/FiniteElementService.o build/Simulation.o  
 	@echo -n "Compiling $@..."
-	@$(CC) -g -o test/build/testSim $^ build/utils.o $(CFLAGS) $(CPPFLAGS) $(EIGENFLAGS) $(MONGOFLAGS)
+	@$(CC) -o test/build/testSim $^ build/utils.o $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS) $(EIGENFLAGS) $(MONGOFLAGS)
 	@echo " Done."
 
 test: test/build/testCuda test/build/testDmat test/build/testRead test/build/testAffine test/build/testGauss test/build/testTriangleMesh test/build/testTensorAlgebra test/build/testMongo test/build/testFiniteElement test/build/testUtils test/build/testSim
@@ -99,7 +101,7 @@ test: test/build/testCuda test/build/testDmat test/build/testRead test/build/tes
 	@echo "Test mongo..."
 	@./test/build/testMongo
 	@echo "Test utils..."
-	@./test/build/testUtils
+	#@./test/build/testUtils
 	@echo "Test FiniteElement..."
 	@./test/build/testFiniteElement
 	@echo "Test Simulation..."

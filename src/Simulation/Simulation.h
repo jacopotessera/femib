@@ -12,6 +12,7 @@
 #include <Eigen/Eigen>
 
 #include "../../lib/mini-book.h"
+#include "../../lib/Log.h"
 
 #include "../dmat/dmat.h"
 #include "../dmat/dmat_impl.h"
@@ -34,8 +35,6 @@
 #include "../mongodb/dbconfig.h"
 #include "../mongodb/mongodb.h"
 #include "../Cuda/Cuda.h"
-
-#include <fstream>
 
 typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> edmat;
 typedef std::vector<Eigen::Triplet<double>> etmat;

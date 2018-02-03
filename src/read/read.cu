@@ -32,6 +32,9 @@ std::vector<T> read(std::string fileName)
 	}
 	else
 	{
+		std::string ss = "Unable to open file ";
+		ss.append(fileName);
+		LOG_ERROR(ss);
 		throw std::invalid_argument("Unable to open file "+fileName); 
 	}
 

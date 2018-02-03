@@ -2,6 +2,7 @@
 
 * sistemare makefile, corregere dipendenze
 * scrivere qualcosa nel README
+* aggiungere log
 
 ## build/
 
@@ -14,6 +15,7 @@
 ## mesh/
 
 * migliorare plotMesh.py (percorso file, 1D, 3D)
+* migliorare genMesh.py
 
 ## plot/
 

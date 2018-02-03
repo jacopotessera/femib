@@ -36,7 +36,11 @@ __host__ __device__ dvec::dvec(const std::initializer_list<double> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec: Invalid size!");
+	else
+	{
+		LOG_ERROR("dvec: Invalid size!");
+		throw std::invalid_argument("dvec: Invalid size!");
+	}	
 	#endif
 }
 

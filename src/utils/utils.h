@@ -48,6 +48,7 @@ etmat esmat2etmat(const esmat& A);
 etmat esmat2etmat(const esmat& A, int rowDrift, int colDrift);
 esmat etmat2esmat(const etmat &A, int rows, int cols);
 etmat transpose(const etmat &A);
+esmat transpose(const esmat &A);
 etmat& operator+=(etmat& lhs, const etmat &rhs);
 std::ostream& operator<<(std::ostream& out, const etmat &t);
 

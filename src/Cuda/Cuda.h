@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+#include "../../lib/Log.h"
+
 class Cuda
 {
 	public:
@@ -21,6 +23,8 @@ class Cuda
 	private:
 		void setStackSize(int stackSize);
 		void setHeapSize(int heapSize);
+		int getStackSize();
+		int getHeapSize();
 };
 
 #endif

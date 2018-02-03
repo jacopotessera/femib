@@ -203,6 +203,11 @@ etmat transpose(const etmat &A)
 	return B;
 }
 
+esmat transpose(const esmat &A)
+{
+	return A.transpose();
+}
+
 etmat& operator+=(etmat& lhs, const etmat &rhs)
 {
 	lhs.insert(lhs.end(),rhs.begin(),rhs.end());
@@ -250,8 +255,8 @@ std::string getTimestamp()
 std::vector<double> join(evec a, evec b, std::vector<int> ne, std::vector<int> e)
 {
 	std::vector<double> j;
-std::cout << "ne " << ne.size() << std::endl;
-std::cout << "e " << e.size() << std::endl;
+//std::cout << "ne " << ne.size() << std::endl;
+//std::cout << "e " << e.size() << std::endl;
 	j.reserve(ne.size()+e.size());
 	j.resize(ne.size()+e.size());
 	int ii = 0;

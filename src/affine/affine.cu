@@ -8,7 +8,16 @@ dmat affineB(int n, const Mesh &mesh)
 {
 	dmat B;
 	B.rows = mesh.P[0].size;
-	B.cols = (mesh.T[0].size-1) >=0 ? (mesh.T[0].size-1) : 0;
+	if(mesh.T[0].size > 0)
+	{
+		B.cols = mesh.T[0].size-1;
+	}
+	else
+	{
+		LOG_WARNING("dtrian size is 0?");
+		B.cols = 0;
+	}
+	//B.cols = (mesh.T[0].size-1) >=0 ? (mesh.T[0].size-1) : 0;
 	for(int i=0;i<B.rows;++i)
 	{
 		for(int j=0;j<B.cols;++j)

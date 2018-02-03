@@ -1,21 +1,12 @@
 #!/bin/python
 
-import os
-import sys
-import csv
-import math
-import numpy
+import os,sys,math,numpy,matplotlib,pymongo,pandas,pprint
 import matplotlib.pyplot as pyplot
 from matplotlib.animation import FuncAnimation
 import matplotlib.gridspec as gridspec
 from functools import reduce
 from matplotlib import colors, ticker, cm
-import matplotlib
-
 from pymongo import MongoClient
-import pymongo
-import pandas
-import pprint
 
 def parse_id(i):
 	ret = []
@@ -32,22 +23,7 @@ def parse_id(i):
 	ret.append(int(i))
 	return ret
 
-ffw = 40
-area0 = numpy.pi*0.6*0.6
-x_min = -1
-x_max = 1
-y_min = -1
-y_max = 1
-steps = 20
-op_ = "plot"
-
-db = MongoClient('localhost', 27017)['testSimulation']
-simCollection = db['sim']
-timestepCollection = db['plotData']
-rawTimestepCollection = db['timestep']
-
-sims = simCollection.find({},{"id": 1}).sort([("id", pymongo.DESCENDING)])
-if len(sys.argv)==1:
+def list_simulations(sims):
 	print("Available Simulation:")
 	n = 1
 	for a in sims:
@@ -62,6 +38,30 @@ if len(sys.argv)==1:
 	print("plot with:")
 	print("\t$ make plot ID=n")
 	sys.exit()
+
+def plot():
+	return 0
+
+def delete():
+	return 0
+
+ffw = 40
+area0 = numpy.pi*0.6*0.6
+x_min = -1
+x_max = 1
+y_min = -1
+y_max = 1
+steps = 20
+op_ = "plot"
+
+db = MongoClient('localhost', 27017)['testSimulation']
+simCollection = db['sim']
+timestepCollection = db['plotData']
+rawTimestepCollection = db['timestep']
+sims = simCollection.find({},{"id": 1}).sort([("id", pymongo.DESCENDING)])
+
+if len(sys.argv)==1:
+	list_simulations(sims)
 elif len(sys.argv)==2:
 	id_ = sims[int(sys.argv[1])-1]["id"]
 	op_ = "plot"

@@ -43,6 +43,10 @@ void drop(dbconfig db){
 	simCollection.drop();
 	timestepCollection.drop();
 	plotDataCollection.drop();
+
+	std::ostringstream ss;
+	ss << db.dbname << " dropped.";
+	LOG_OK(ss);
 }
 
 void save_sim(dbconfig db, miniSim sim){
@@ -53,8 +57,17 @@ void save_sim(dbconfig db, miniSim sim){
 	if(simCollection.count( document{} << "id" << sim.id << finalize )==0)
 	{
 		simCollection.insert_one(sim2doc(sim).view());
+		std::ostringstream ss;
+		ss << "Saved simulation id = " << sim.id << ".";
+		LOG_OK(ss);
 	}
-	else throw std::invalid_argument("save_sim: sim already present in collection!");
+	else
+	{
+		std::ostringstream ss;
+		ss << "save_sim: simulation id = " << sim.id << " already present in collection!";
+		LOG_ERROR(ss);
+		throw std::invalid_argument("save_sim: sim already present in collection!");
+	}
 }
 
 miniSim get_sim(dbconfig db, std::string id)
@@ -76,12 +89,10 @@ int get_time(dbconfig db, std::string id)
 	int t = timestepCollection.count(
 		document{} << "id" << id << finalize);
 	return t;
-
 }
 
 void save_timestep(dbconfig db, timestep t)
 {
-std::cout << "Saving timestep id = " << t.id << ", time = " << t.time << std::endl; 
 	mongocxx::instance inst{};
     mongocxx::client conn{mongocxx::uri{}};
     auto timestepCollection = conn[db.dbname]["timestep"];
@@ -89,8 +100,17 @@ std::cout << "Saving timestep id = " << t.id << ", time = " << t.time << std::en
 	if(timestepCollection.count( document{} << "id" << t.id << "time" << t.time << finalize )==0)
 	{
 		timestepCollection.insert_one(timestep2doc(t).view());
+		std::ostringstream ss;
+		ss << "Saved timestep id = " << t.id << ", time = " << t.time << ".";
+		LOG_OK(ss);
 	}
-	else throw std::invalid_argument("save_timestep: timestep already present in collection!");
+	else
+	{
+		std::ostringstream ss;
+		ss << "save_timestep: timestep id = " << t.id << ", time = " << t.time << " already present in collection!";
+		LOG_ERROR(ss);
+		throw std::invalid_argument("save_timestep: timestep already present in collection!");
+	}
 }
 
 timestep get_timestep(dbconfig db, std::string id, int time)
@@ -108,7 +128,6 @@ timestep get_timestep(dbconfig db, std::string id, int time)
 
 void save_plotData(dbconfig db, plotData t)
 {
-std::cout << "Saving plotData id = " << t.id << ", time = " << t.time << std::endl; 
 	mongocxx::instance inst{};
     mongocxx::client conn{mongocxx::uri{}};
     auto plotDataCollection = conn[db.dbname]["plotData"];
@@ -116,8 +135,17 @@ std::cout << "Saving plotData id = " << t.id << ", time = " << t.time << std::en
 	if(plotDataCollection.count( document{} << "id" << t.id << "time" << t.time << finalize )==0)
 	{
 		plotDataCollection.insert_one(plotData2doc(t).view());
+		std::ostringstream ss;
+		ss << "Saved timestep id = " << t.id << ", time = " << t.time << ".";
+		LOG_OK(ss);
 	}
-	else throw std::invalid_argument("save_plotData: plotData already present in collection!");
+	else
+	{
+		std::ostringstream ss;
+		ss << "save_plotData: plotData id = " << t.id << ", time = " << t.time << " already present in collection!";
+		LOG_ERROR(ss);
+		throw std::invalid_argument("save_plotData: plotData already present in collection!");
+	}
 }
 
 plotData get_plotData(dbconfig db, std::string id, int time)

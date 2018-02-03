@@ -3,6 +3,7 @@
 */
 
 #include "../lib/cppunit.h"
+#include "../lib/Log.h"
 
 #include "../src/Simulation/Simulation.h"
 #include "../src/read/read.h"
@@ -58,29 +59,34 @@ TestSimulation::test1(void)
 
 void TestSimulation::setUp(void)
 {
-
 	std::cout << std::endl;
+	logx::Logger::getInstance()->setLogLevel("test/TestSim.cu",LOG_LEVEL_INFO);
+	logx::Logger::getInstance()->setLogLevel("src/Simulation/Simulation.cu",LOG_LEVEL_DEBUG);
+	logx::Logger::getInstance()->setLogLevel("src/FiniteElementSpace/FiniteElementSpaceS.cu",LOG_LEVEL_INFO);
+	logx::Logger::getInstance()->setLogLevel("src/FiniteElementSpace/FiniteElementSpaceL.cu",LOG_LEVEL_INFO);
 //	pV = "mesh/pVd_unif.mat";
 //	tV = "mesh/tVd_unif.mat";
 //	eV = "mesh/eVd_unif.mat";
 
 // "funziona" con p3 e dt = 0.001 k = 100 in circa 1500 step
-	std::cout << Eigen::nbThreads() << std::endl;
+	std::ostringstream ss_omp;	
+	ss_omp << "OpenMP threads set to " << Eigen::nbThreads() << ".";
+	LOG_DEBUG(ss_omp);
 	pV = "mesh/perugiamesh/p3.mat";
 	tV = "mesh/perugiamesh/t3.mat";
 	eV = "mesh/perugiamesh/e3.mat";
 
-	//pS = "mesh/pSd_unif.mat";
-	//tS = "mesh/tSd_unif.mat";
-	//eS = "mesh/eSd_unif.mat";
+	pS = "mesh/pSd_unif.mat";
+	tS = "mesh/tSd_unif.mat";
+	eS = "mesh/eSd_unif.mat";
 
-	pS = "mesh/pS_64_4.mat";
-	tS = "mesh/tS_64_4.mat";
-	eS = "mesh/eS_64_4.mat";
+	//pS = "mesh/pS_64_4.mat";
+	//tS = "mesh/tS_64_4.mat";
+	//eS = "mesh/eS_64_4.mat";
 
 	gV = gaussService.getGauss("gauss5_2d");
-	//gS = gaussService.getGauss("gauss5_1d");
-	gS = gaussService.getGauss("gauss5_2d");
+	gS = gaussService.getGauss("gauss5_1d");
+	//gS = gaussService.getGauss("gauss5_2d");
 	mV = readMesh(pV,tV,eV);
 	mS = readMesh(pS,tS,eS);
 
@@ -92,8 +98,8 @@ void TestSimulation::setUp(void)
 
 	finElemQ = finiteElementService.getFiniteElement("P1P0_2d1d");
 	finElemV = finiteElementService.getFiniteElement("P2_2d2d");
-	//finElemS = finiteElementService.getFiniteElement("P1_1d2d");
-	finElemS = finiteElementService.getFiniteElement("P1_2d2d");
+	finElemS = finiteElementService.getFiniteElement("P1_1d2d");
+	//finElemS = finiteElementService.getFiniteElement("P1_2d2d");
 
 	V = FiniteElementSpaceV(triMeshV,finElemV,gV);
 	V.buildFiniteElementSpace();
@@ -112,8 +118,8 @@ void TestSimulation::setUp(void)
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
 	parameters.deltarho = 1.0;
-	parameters.kappa = 1.0;
-	parameters.deltat = 0.001;
+	parameters.kappa = 10.0;
+	parameters.deltat = 0.01;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -127,21 +133,25 @@ void TestSimulation::setUp(void)
 	double yC = 0.0;
 
 	std::vector<dvec> A = read<dvec,double>(pS);
-
 	std::vector<double> x(S.spaceDim);
-	for(int i=0;i<S.spaceDim/2;++i){
+
+	/*for(int i=0;i<S.spaceDim/2;++i){
 		x[i]=A[i](0)*gamma;
 		x[i+S.spaceDim/2]=A[i](1)*(1.0/gamma);
-		std::cout << i << " : [ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]" << std::endl;
-	}
+		std::ostringstream ss;
+		ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
+		LOG_TRACE(ss);
+	}*/
 	
-	/*int AA = A.size() - 1;
+	int AA = A.size() - 1;
 	for(int i=0;i<S.spaceDim/2;++i)
 	{
 		x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI+M_PI/4)+xC;
 		x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI+M_PI/4)+yC;
-		std::cout << i << " : [ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]" << std::endl;  
-	}*/
+		std::ostringstream ss;
+		ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
+		LOG_TRACE(ss);
+	}
 
 	t0.x = x;
 	t1.x = x;
@@ -152,10 +162,14 @@ void TestSimulation::setUp(void)
 		t1.u[i] = 0;
 	}
 
-	std::cout << "V mesh radius " << V.T.getMeshRadius() << std::endl;
-	std::cout << "S mesh radius " << S.T.getMeshRadius() << std::endl;
+	std::ostringstream ss,tt;
+	ss << "V mesh radius " << V.T.getMeshRadius();
+	tt << "S mesh radius " << S.T.getMeshRadius();
+	LOG_INFO(ss);
+	LOG_INFO(tt);
 
-	s = Simulation(db,parameters,V,Q,S,L,t0,t1);
+	s = Simulation(db,parameters,V,Q,S,t0,t1);
+	//s = Simulation(db,parameters,V,Q,S,L,t0,t1);
 	//s = Simulation(id,db,parameters,V,Q,S,L,t0,t1);
 	//s.getSimulation(db,"");
 	s.prepare();

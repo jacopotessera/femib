@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Gauss.h"
+#include "../../lib/Log.h"
 
 class GaussService
 {

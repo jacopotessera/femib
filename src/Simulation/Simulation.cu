@@ -184,10 +184,11 @@ plotData Simulation::timestep2plotData(timestep t)
 	{
 		int m = S.collisionDetection({pp})[0];
 		dvec s = S(timesteps[p.time].x,m).x(pp);
-std::cout << "x---" << std::endl;
-std::cout << pp << std::endl;
-std::cout << s << std::endl;
-std::cout << std::endl;
+std::ostringstream ss,tt;
+ss << "x    = [ " << pp(0) << " ]";//<< " , " << pp(1) << " ]";
+tt << "S(x) = [ " << s(0) << " , " << s(1) << " ]";
+LOG_TRACE(ss);
+LOG_TRACE(tt);
 		p.x.push_back({dvec2vector(pp),dvec2vector(s)});
 	}	
 
@@ -226,34 +227,34 @@ void Simulation::buildEdge()
 
 void Simulation::prepare()
 {
-	std::cout << "buildEdge..." << std::endl;buildEdge();
-	std::cout << "buildFluidMatrices..." << std::endl;buildFluidMatrices();
+	LOG_INFO("buildEdge..."); buildEdge();
+	LOG_INFO("buildFluidMatrices...");buildFluidMatrices();
 	if(full)
 	{
-		std::cout << "buildStructureMatrices..." << std::endl;buildStructureMatrices();
-		std::cout << "buildMultiplierMatrices..." << std::endl;buildMultiplierMatrices();
+		LOG_INFO("buildStructureMatrices...");buildStructureMatrices();
+		LOG_INFO("buildMultiplierMatrices...");buildMultiplierMatrices();
 	}
 	//TODO creare matrice sparse qui
 }
 
 void Simulation::advance()
 {
-	std::cout << "clear..." << std::endl;clear();
-	std::cout << "buildK2f..." << std::endl;buildK2f();
+	LOG_INFO("clear...");clear();
+	LOG_INFO("buildK2f...");buildK2f();
 	if(full)
 	{
-		std::cout << "buildLf..." << std::endl;buildLf();
+		LOG_INFO("buildLf...");buildLf();
 	}
 	else
 	{
-		std::cout << "buildF..." << std::endl;buildF();
+		LOG_INFO("buildF...");buildF();
 	}
-	std::cout << "triplet2sparse..." << std::endl;triplet2sparse();
-	std::cout << "buildb..." << std::endl;buildb();
-	std::cout << "solve..." << std::endl;solve();
-	std::cout << "save..." << std::endl;save();
-	std::cout << "savePlotData..." << std::endl;savePlotData();
-	std::cout << "Done." << std::endl;
+	LOG_INFO("triplet2sparse...");triplet2sparse();
+	LOG_INFO("buildb...");buildb();
+	LOG_INFO("solve...");solve();
+	LOG_INFO("save...");save();
+	LOG_INFO("savePlotData...");savePlotData();
+	LOG_INFO("Done.");
 }
 
 void Simulation::advance(int steps)
@@ -366,7 +367,7 @@ void Simulation::buildMultiplierMatrices()
 	}
 	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(L.spaceDim,S.spaceDim);
 	sB.setFromTriplets(Bs.begin(),Bs.end());
-	etmat temp = esmat2etmat(compress(S.applyEdgeCondition(sB),S,L),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT));
+	etmat temp = esmat2etmat(compress(transpose(L.applyEdgeCondition(transpose(S.applyEdgeCondition(sB)))),S,L),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT));
 	C+=temp;
 	C+=transpose(temp);
 }
@@ -420,16 +421,42 @@ void Simulation::buildLf()
 					if(valLf!=0)
 					{
 						Lf.push_back(Eigen::Triplet<double>(a.i,b.i,valLf));
-						if(a.mini_i!=-1 && b.mini_i!=-1)
+						/*if(a.mini_i!=-1 && b.mini_i!=-1)
 						{
-						  Ct.push_back(Eigen::Triplet<double>(a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),b.mini_i,valLf));
-						  Ct.push_back(Eigen::Triplet<double>(b.mini_i,a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),valLf));
-						}
+							Ct.push_back(Eigen::Triplet<double>(a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),b.mini_i,valLf));
+							Ct.push_back(Eigen::Triplet<double>(b.mini_i,a.mini_i+(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),valLf));
+						}*/
 					}
 				}
 			}
 		}
 	}
+
+	Eigen::SparseMatrix<double> sB = Eigen::SparseMatrix<double>(L.spaceDim,V.spaceDim);
+	sB.setFromTriplets(Lf.begin(),Lf.end());
+	etmat temp = esmat2etmat(compress(transpose(L.applyEdgeCondition(transpose(V.applyEdgeCondition(sB)))),V,L),
+		(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT),0);
+
+	/*std::ostringstream ss0;
+	ss0 << "0. Lf: " << std::endl << edmat(sB);	
+	LOG_TRACE(ss0);
+
+	std::ostringstream ss1;
+	//ss << "1. Lf: " << std::endl << edmat(etmat2esmat(esmat2etmat(compress(transpose(L.applyEdgeCondition(transpose(V.applyEdgeCondition(sB)))),V,L),0,0),8,10));	
+	ss1 << "1. Lf: " << std::endl << edmat(transpose(V.applyEdgeCondition(sB)));
+	LOG_TRACE(ss1);
+
+	std::ostringstream ss;
+	//ss << "1. Lf: " << std::endl << edmat(etmat2esmat(esmat2etmat(compress(transpose(L.applyEdgeCondition(transpose(V.applyEdgeCondition(sB)))),V,L),0,0),8,10));	
+	ss << "1. Lf: " << std::endl << edmat(L.applyEdgeCondition(transpose(V.applyEdgeCondition(sB))));
+	LOG_TRACE(ss);
+
+	std::ostringstream ss2;
+	ss2 << "2. Lf: " << std::endl << edmat(etmat2esmat(esmat2etmat(compress(transpose(L.applyEdgeCondition(transpose(V.applyEdgeCondition(sB)))),V,L),0,0),8,10));	
+	LOG_TRACE(ss2);*/
+
+	Ct+=temp;
+	Ct+=transpose(temp);
 }
 
 void Simulation::buildF()
@@ -467,15 +494,17 @@ void Simulation::buildF()
 			}
 		}
 	}
-	std::cout << "|FF| = " << FF.norm() << std::endl;
+	std::ostringstream ss;
+	ss << "|FF| = " << FF.norm();
+	LOG_INFO(ss);
 }
 
 void Simulation::triplet2sparse()
 {
 	if(full)
 	{
-		sC = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+L.spaceDim,(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+L.spaceDim);
-		sCt = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+L.spaceDim,(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+L.spaceDim);
+		sC = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+(L.spaceDim-L.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+(L.spaceDim-L.nBT));
+		sCt = esmat((V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+(L.spaceDim-L.nBT),(V.spaceDim-V.nBT)+(Q.spaceDim-Q.nBT)+(S.spaceDim-S.nBT)+(L.spaceDim-L.nBT));
 		sLs = esmat(L.spaceDim,L.spaceDim);
 		sLf = esmat(L.spaceDim,V.spaceDim);
 
@@ -603,8 +632,8 @@ void Simulation::updateX()
 
 timestep Simulation::eigen2timestep(evec a)
 {
+	LOG_INFO("eigen2timestep...");
 	timestep t;
-	std::cout << "eigen2timestep" << std::endl;
 	evec bV = a.block(0,0,V.spaceDim-V.nBT,1);
 	evec aV = getColumns(V.E.sparseView(),V.notEdge)*bV;
 	std::vector<double> tV = join(bV,aV,V.notEdge,V.edge);
@@ -614,17 +643,16 @@ timestep Simulation::eigen2timestep(evec a)
 	std::vector<double> tQ = join(bQ,aQ,Q.notEdge,Q.edge);
 
 	evec bS = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT,0,S.spaceDim-S.nBT,1);
-	//evec aS = getColumns(S.E.sparseView(),S.notEdge)*bS;
-	//std::vector<double> tS = join(bS,aS,S.notEdge,S.edge);
+	evec aS = getColumns(S.E.sparseView(),S.notEdge)*bS;
+	std::vector<double> tS = join(bS,aS,S.notEdge,S.edge);
 
 //std::cout << S.E*vector2eigen(tS) << std::endl;
 //std::cout << "[ " << tS[0] << " , " << tS[65] << " ]" << std::endl;
 //std::cout << "[ " << tS[64] << " , " << tS[129] << " ]" << std::endl;
 
 	evec bL = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT+S.spaceDim-S.nBT,0,L.spaceDim-L.nBT,1);
-	//evec aL = getColumns(L.E.sparseView(),L.notEdge)*bL;
-	//std::vector<double> tL = join(bL,aL,L.notEdge,L.edge);
-	std::cout << "fine eigen2timestep" << std::endl;
+	evec aL = getColumns(L.E.sparseView(),L.notEdge)*bL;
+	std::vector<double> tL = join(bL,aL,L.notEdge,L.edge);
 
 	//std::cout << tV << std::endl;
 	//std::cout << tQ << std::endl;
@@ -633,9 +661,10 @@ timestep Simulation::eigen2timestep(evec a)
 
 	t.u = tV;
 	t.q = tQ;
-	//t.x = tS;
-	t.x = eigen2vector(bS);
-	t.l = eigen2vector(bL);
+	t.x = tS;
+	t.l = tL;	
+	//t.x = eigen2vector(bS);
+	//t.l = eigen2vector(bL);
 
 	/*int j=0;
 	for(int i=0;i<V.spaceDim && j<a.size();++i)
@@ -709,15 +738,15 @@ void Simulation::solve()
 	}
 	else
 	{
-		Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
+		//Eigen::SparseQR<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
 		//Eigen::SparseLU<Eigen::SparseMatrix<double>,Eigen::COLAMDOrdering<int>> solver;
 		//Eigen::HouseholderQR<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>> solver;
 		//Eigen::JacobiSVD<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>> solver;
 		//Eigen::SPQR<Eigen::SparseMatrix<double>> solver;
 		//Eigen::BiCGSTAB<Eigen::SparseMatrix<double>,Eigen::IncompleteLUT<double>> solver;
 		//Eigen::SuperLU<Eigen::SparseMatrix<double>> solver;
-		//Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,Eigen::Lower|Eigen::Upper> solver;
-		std::cout << Eigen::nbThreads() << std::endl;
+		Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,Eigen::Lower|Eigen::Upper> solver;
+		//std::cout << Eigen::nbThreads() << std::endl;
 		solver.compute(sCt);
 		evec v = solver.solve(b);
 		timesteps.push_back(eigen2timestep(v));

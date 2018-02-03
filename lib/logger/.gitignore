@@ -2,5 +2,4 @@ build/*
 log/*
 test/build/*
 test/results/*
-gitignore/
 

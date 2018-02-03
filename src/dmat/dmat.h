@@ -10,6 +10,8 @@
 
 #include <initializer_list>
 
+#include "../../lib/Log.h"
+
 struct dvec
 {
 	int size = 0;

@@ -10,10 +10,10 @@ Gauss::~Gauss(){}
 Gauss::Gauss(std::string gaussName, int n, std::vector<dvec> nodes, std::vector<double> weights, double volume)
 {
 	this->gaussName = gaussName;
-	this->n = n; //TODO: ?
+	this->n = n; //TODO ?
 	this->nodes = nodes;
 	this->weights = weights;
-	this->volume = volume; //TODO: ?
+	this->volume = volume; //TODO ?
 }
 
 double Gauss::integrate(const std::function<double(dvec)> &f)

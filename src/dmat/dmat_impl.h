@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "dmat.h"
+#include "../../lib/Log.h"
 
 #define M_PI           3.14159265358979323846
 #define M_EPS          0.000001

@@ -22,6 +22,9 @@ Gauss GaussService::getGauss(const std::string &g)
 	}
 	else
 	{
+		std::ostringstream ss;
+		ss << "GaussService: " << g << " not found!";
+		LOG_ERROR(ss);
 		throw std::invalid_argument("GaussService: "+g+" not found!");
 	}
 }

@@ -32,7 +32,9 @@ TestCuda::TestCudaConfig(void)
 void TestCuda::setUp(void)
 {
 	std::cout << std::endl;
+	logx::Logger::getInstance()->setLogLevel("src/Cuda/Cuda.cu",LOG_LEVEL_DEBUG);
 	c.getSize();
+	Cuda d;
 }
 
 void TestCuda::tearDown(void)

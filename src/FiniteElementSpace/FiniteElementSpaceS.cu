@@ -16,10 +16,11 @@ FiniteElementSpaceS& FiniteElementSpaceS::operator=(const FiniteElementSpace &fi
 
 void FiniteElementSpaceS::buildEdge()
 {
-	bool thin = false; //TODO
-	bool thick = true;
+	bool thin = true; //TODO
+	bool thick = !thin;
 	if(thin)
 	{
+		LOG_INFO("finiteElemenSpaceS: thin.");
 		edge = join(nodes.E,nodes.E+spaceDim/ambientDim);//TODO 1d? 3d?
 		nBT = edge.size();
 		notEdge = setdiff(linspace(spaceDim),edge);
@@ -39,6 +40,7 @@ void FiniteElementSpaceS::buildEdge()
 	}
 	if(thick)
 	{
+		LOG_INFO("finiteElemenSpaceS: thick.");
 		nBT = 0;
 		notEdge = linspace(spaceDim);
 

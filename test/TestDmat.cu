@@ -93,6 +93,7 @@ TestDmat::test3D(void)
 
 void TestDmat::setUp(void)
 {
+	std::cout << std::endl;
 	A0 = {{5}};
 	A1 = {{2},{1}};
 	A2 = {{1,2}};
