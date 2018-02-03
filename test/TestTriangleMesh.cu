@@ -41,9 +41,9 @@ TestTriangleMesh::test1(void)
 void TestTriangleMesh::setUp(void)
 {
 
-	sp = "mesh/perugiamesh/p0.mat";
-	st = "mesh/perugiamesh/t0.mat";
-	se = "mesh/perugiamesh/e0.mat";
+	sp = "mesh/perugia/p0.mat";
+	st = "mesh/perugia/t0.mat";
+	se = "mesh/perugia/e0.mat";
 	m = readMesh(sp,st,se);
 	g = gaussService.getGauss("gauss2_2d");
 

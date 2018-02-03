@@ -113,21 +113,21 @@ void TestMongo::setUp(void)
 	s.S.finiteElement = finiteElementS;
 	s.L.finiteElement = finiteElementL;
 
-	s.V.mesh.P = read<dvec,double>("mesh/perugiamesh/p0.mat");
-	s.V.mesh.T = read<ditrian,int>("mesh/perugiamesh/t0.mat");
-	s.V.mesh.E = read<int,int>("mesh/perugiamesh/e0.mat");
+	s.V.mesh.P = read<dvec,double>("mesh/perugia/p0.mat");
+	s.V.mesh.T = read<ditrian,int>("mesh/perugia/t0.mat");
+	s.V.mesh.E = read<int,int>("mesh/perugia/e0.mat");
 
-	s.Q.mesh.P = read<dvec,double>("mesh/perugiamesh/p1.mat");
-	s.Q.mesh.T = read<ditrian,int>("mesh/perugiamesh/t1.mat");
-	s.Q.mesh.E = read<int,int>("mesh/perugiamesh/e1.mat");
+	s.Q.mesh.P = read<dvec,double>("mesh/perugia/p1.mat");
+	s.Q.mesh.T = read<ditrian,int>("mesh/perugia/t1.mat");
+	s.Q.mesh.E = read<int,int>("mesh/perugia/e1.mat");
 
-	s.S.mesh.P = read<dvec,double>("mesh/perugiamesh/p2.mat");
-	s.S.mesh.T = read<ditrian,int>("mesh/perugiamesh/t2.mat");
-	s.S.mesh.E = read<int,int>("mesh/perugiamesh/e2.mat");
+	s.S.mesh.P = read<dvec,double>("mesh/perugia/p2.mat");
+	s.S.mesh.T = read<ditrian,int>("mesh/perugia/t2.mat");
+	s.S.mesh.E = read<int,int>("mesh/perugia/e2.mat");
 	
-	s.L.mesh.P = read<dvec,double>("mesh/perugiamesh/p3.mat");
-	s.L.mesh.T = read<ditrian,int>("mesh/perugiamesh/t3.mat");
-	s.L.mesh.E = read<int,int>("mesh/perugiamesh/e3.mat");
+	s.L.mesh.P = read<dvec,double>("mesh/perugia/p3.mat");
+	s.L.mesh.T = read<ditrian,int>("mesh/perugia/t3.mat");
+	s.L.mesh.E = read<int,int>("mesh/perugia/e3.mat");
 
 	s.id = id;
 	s.date = date;

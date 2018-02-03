@@ -53,9 +53,9 @@ TestAffine::testAffineb(void)
 
 void TestAffine::setUp(void)
 {
-	mesh1d1d = readMesh("mesh/P1d1d.mat","mesh/T1d1d.mat");
-	mesh1d2d = readMesh("mesh/P1d2d.mat","mesh/T1d2d.mat");
-	mesh1d3d = readMesh("mesh/P1d3d.mat","mesh/T1d3d.mat");
+	mesh1d1d = readMesh("mesh/testMesh/p1d1d.mat","mesh/testMesh/t1d1d.mat");
+	mesh1d2d = readMesh("mesh/testMesh/p1d2d.mat","mesh/testMesh/t1d2d.mat");
+	mesh1d3d = readMesh("mesh/testMesh/p1d3d.mat","mesh/testMesh/t1d3d.mat");
 
 	punto_medio = {0.5};
 	punto_medio_n = {-1.0};

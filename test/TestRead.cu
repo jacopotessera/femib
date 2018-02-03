@@ -35,8 +35,8 @@ TestRead::testRead(void)
 void TestRead::setUp(void)
 {
 	std::cout << std::endl;
-	meshP = read<dvec,double>("mesh/P1d1d.mat");
-	meshT = read<ditrian,int>("mesh/T1d1d.mat");
+	meshP = read<dvec,double>("mesh/testMesh/p1d1d.mat");
+	meshT = read<ditrian,int>("mesh/testMesh/t1d1d.mat");
 	try
 	{
 		meshP = read<dvec,double>("mat.mat");

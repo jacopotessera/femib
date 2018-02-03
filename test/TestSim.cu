@@ -72,13 +72,13 @@ void TestSimulation::setUp(void)
 	std::ostringstream ss_omp;	
 	ss_omp << "OpenMP threads set to " << Eigen::nbThreads() << ".";
 	LOG_DEBUG(ss_omp);
-	pV = "mesh/perugiamesh/p3.mat";
-	tV = "mesh/perugiamesh/t3.mat";
-	eV = "mesh/perugiamesh/e3.mat";
+	pV = "mesh/perugia/p3.mat";
+	tV = "mesh/perugia/t3.mat";
+	eV = "mesh/perugia/e3.mat";
 
-	pS = "mesh/pSd_unif.mat";
-	tS = "mesh/tSd_unif.mat";
-	eS = "mesh/eSd_unif.mat";
+	pS = "mesh/pS_64.mat";
+	tS = "mesh/tS_64.mat";
+	eS = "mesh/eS_64.mat";
 
 	//pS = "mesh/pS_64_4.mat";
 	//tS = "mesh/tS_64_4.mat";

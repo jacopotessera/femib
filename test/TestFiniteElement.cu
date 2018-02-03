@@ -55,9 +55,9 @@ TestFiniteElement::testCheck(void)
 
 void TestFiniteElement::setUp(void)
 {
-	p = "mesh/pSd_unif.mat";
-	t = "mesh/tSd_unif.mat";
-	e = "mesh/eSd_unif.mat";
+	p = "mesh/pS_64.mat";
+	t = "mesh/tS_64.mat";
+	e = "mesh/eS_64.mat";
 
 	g = gaussService.getGauss("gauss5_1d");
 	f = finiteElementService.getFiniteElement("P1_1d2d");

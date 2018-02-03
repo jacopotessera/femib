@@ -42,9 +42,9 @@ TestFiniteElement::test1(void)
 
 void TestFiniteElement::setUp(void)
 {
-	p = "mesh/perugiamesh/p0.mat";
-	t = "mesh/perugiamesh/t0.mat";
-	e = "mesh/perugiamesh/e0.mat";
+	p = "mesh/perugia/p0.mat";
+	t = "mesh/perugia/t0.mat";
+	e = "mesh/perugia/e0.mat";
 	g = gaussService.getGauss("gauss2_2d");
 	TriangleMesh triMesh = TriangleMesh(readMesh(p,t,e),g);
 

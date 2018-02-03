@@ -1,16 +1,15 @@
 #!/bin/python
 
+import math, numpy, sys
 from functools import reduce
-import math, numpy
 from matplotlib import pyplot
 
-prefix="../perugiamesh/"
-n = "5"
-suffix=".mat"
+prefix = sys.argv[1]
+suffix = sys.argv[2]
 
-p_ = prefix+"p"+n+suffix
-t_ = prefix+"t"+n+suffix
-e_ = prefix+"e"+n+suffix
+p_ = prefix+"p"+suffix
+t_ = prefix+"t"+suffix
+e_ = prefix+"e"+suffix
 
 p_file = open(p_,"r").read().split("\n")
 t_file = open(t_,"r").read().split("\n")
@@ -41,15 +40,15 @@ for e_line in e_file:
 		if e_word != '':
 			E.append(int(e_word))
 
-L = list(map(lambda x : list(map(lambda y : (P[y[1]][0]-P[y[0]][0])**2+(P[y[1]][1]-P[y[0]][1])**2 ,x)) , list(map(lambda x : list(zip(x,numpy.roll(x,-1))),T))))
-LL = list(map(lambda x : (min(x),max(x),min(x)/max(x)) , L ))
+#L = list(map(lambda x : list(map(lambda y : (P[y[1]][0]-P[y[0]][0])**2+(P[y[1]][1]-P[y[0]][1])**2 ,x)) , list(map(lambda x : list(zip(x,numpy.roll(x,-1))),T))))
+#LL = list(map(lambda x : (min(x),max(x),min(x)/max(x)) , L ))
 
-min_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
-max_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
-min_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
-max_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
-min_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
-max_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
+#min_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
+#max_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
+#min_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
+#max_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
+#min_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
+#max_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
 
 fig, ax = pyplot.subplots(1,1)
 fig.set_tight_layout(True)
@@ -61,6 +60,7 @@ Y = list(map(lambda x: x[1],P))
 ax.plot(X,Y,"b.")
 ax.set_xlim([-1.1,1.1])
 ax.set_ylim([-1.1,1.1])
+
 for t in T:
 	tX = [P[t[0]][0],P[t[1]][0],P[t[2]][0],P[t[0]][0]]
 	tY = [P[t[0]][1],P[t[1]][1],P[t[2]][1],P[t[0]][1]]
