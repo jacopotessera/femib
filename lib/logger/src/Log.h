@@ -5,6 +5,13 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#include <sys/types.h>
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -32,12 +39,12 @@ X(TRACE, "  \033[1;35mTRACE\033[0m", 5) \
 #define ENABLE_LOG			6
 
 // Direct Interface
-#define LOG_OK(x)		logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::OK)
-#define LOG_ERROR(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::ERROR)
-#define LOG_WARNING(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::WARNING)
-#define LOG_INFO(x)		logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::INFO)
-#define LOG_DEBUG(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::DEBUG)
-#define LOG_TRACE(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,x,logx::TRACE)
+#define LOG_OK(x)		logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::OK)
+#define LOG_ERROR(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::ERROR)
+#define LOG_WARNING(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::WARNING)
+#define LOG_INFO(x)		logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::INFO)
+#define LOG_DEBUG(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::DEBUG)
+#define LOG_TRACE(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::TRACE)
 
 namespace logx
 {
@@ -69,9 +76,9 @@ namespace logx
 			};
 			#undef X
 
-			void log(const char* file, int line, const char* text, LOG_LEVEL logLevel) throw();
-			void log(const char* file, int line, std::string& text, LOG_LEVEL logLevel) throw();
-			void log(const char* file, int line, std::ostringstream& stream, LOG_LEVEL logLevel) throw();
+			void log(const char* file, int line, const char* function, const char* text, LOG_LEVEL logLevel) throw();
+			void log(const char* file, int line, const char* function, std::string& text, LOG_LEVEL logLevel) throw();
+			void log(const char* file, int line, const char* function, std::ostringstream& stream, LOG_LEVEL logLevel) throw();
 
 			void setLogLevel(std::string s, int logLevel);
 			int getLogLevel(const char* file);
@@ -102,6 +109,7 @@ namespace logx
 			std::string m_LogFile;
 			std::mutex m_Mutex;			
 			int m_LogLevel;
+			bool m_LogPID;
 			std::unordered_map<std::string,int> m_LogLevels;
 			int m_LogType;
 	};

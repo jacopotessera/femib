@@ -5,6 +5,7 @@
 #ifndef MONGODB_H_INCLUDED_
 #define MONGODB_H_INCLUDED_
 
+#include "../utils/Exception.h"
 #include "../../lib/Log.h"
 
 void drop(dbconfig db);

@@ -5,6 +5,7 @@
 #include "../lib/cppunit.h"
 
 #include "../src/utils/utils.h"
+#include "../src/utils/Exception.h"
 
 class TestUtils : public CppUnit::TestFixture
 {
@@ -82,6 +83,16 @@ void TestUtils::setUp(void)
 	std::cout << Z << std::endl;
 
 	std::cout << getTimestamp() << std::endl;
+
+	try
+	{
+		throw EXCEPTION("Test EXCEPTION!");
+	}
+	catch(const std::invalid_argument& e)
+	{
+		LOG_OK("Exception caught!");
+		LOG_OK(e.what());
+	}
 }
 
 void TestUtils::tearDown(void)

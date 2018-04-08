@@ -118,8 +118,8 @@ void TestSimulation::setUp(void)
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
 	parameters.deltarho = 1.0;
-	parameters.kappa = 10.0;
-	parameters.deltat = 0.01;
+	parameters.kappa = 100.0;
+	parameters.deltat = 0.001;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);

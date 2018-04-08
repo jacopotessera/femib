@@ -1,16 +1,19 @@
 CC = /opt/cuda/bin/nvcc --expt-relaxed-constexpr
-DEBUG = -G -O3 #-g -pg
+DEBUG = -G -O3 -g -Xcompiler=-rdynamic #-g -pg
 CFLAGS = -std=c++11
 EIGENFLAGS = -I/usr/local/include/eigen3/ -Xcompiler -fopenmp -lgomp
 CPPUNITFLAGS = -lcppunit
 CUDAFLAGS = -L/opt/cuda/lib64 -lcuda -lcudart
 MONGOFLAGS = -L/lib -L/usr/local/lib -I/usr/local/include/mongocxx/v_noabi -I/usr/include/libmongoc-1.0 -I/usr/local/include/bsoncxx/v_noabi -I/usr/include/libbson-1.0 -lmongocxx -lbsoncxx -l:libmongocxx.so._noabi -l:libbsoncxx.so._noabi
-LIBLOG = lib/logger/build/Log.o
+LIBLOG = lib/logger/build/Log.o -Xcompiler=-rdynamic
 DATETIME=`date +"%Y-%m-%d_%H:%M:%S"`
 #ln -rs lib/logger/src/Log.h lib/Log.h
 #ln -rs lib/logger/build/Log.o lib/Log.o
 VPATH = src/Cuda:src/dmat:src/read:src/affine:src/Gauss:src/TriangleMesh:src/FiniteElement:src/FiniteElementSpace:src/utils:src/tensorAlgebra:src/mongodb:src/Simulation
-.PHONY : test clean plot doc prepare find todo
+.PHONY : test clean plot doc prepare find todo logger
+
+logger:
+	@make -C lib/logger/ clean test
 
 build/mongodb_impl.o: mongodb_impl.cpp mongodb_impl.h
 	@echo -n "Compiling $@..."
@@ -101,7 +104,7 @@ test: test/build/testCuda test/build/testDmat test/build/testRead test/build/tes
 	@echo "Test mongo..."
 	@./test/build/testMongo
 	@echo "Test utils..."
-	#@./test/build/testUtils
+	@./test/build/testUtils
 	@echo "Test FiniteElement..."
 	@./test/build/testFiniteElement
 	@echo "Test Simulation..."

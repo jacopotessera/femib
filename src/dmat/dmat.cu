@@ -22,7 +22,7 @@ __host__ __device__ ditrian::ditrian(){}
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec: Invalid size!");
+	else throw EXCEPTION("dvec: Invalid size!");
 	#endif
 }*/
 
@@ -36,11 +36,7 @@ __host__ __device__ dvec::dvec(const std::initializer_list<double> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else
-	{
-		LOG_ERROR("dvec: Invalid size!");
-		throw std::invalid_argument("dvec: Invalid size!");
-	}	
+	else throw EXCEPTION("dvec: Invalid size!");
 	#endif
 }
 
@@ -54,7 +50,7 @@ __host__ __device__ divec::divec(const std::initializer_list<int> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("divec: Invalid size!");
+	else throw EXCEPTION("divec: Invalid size!");
 	#endif
 }
 
@@ -73,7 +69,7 @@ __host__ __device__ divec::divec(const std::initializer_list<int> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat: Invalid size!");
+	else throw EXCEPTION("dmat: Invalid size!");
 	#endif
 }*/
 
@@ -102,7 +98,7 @@ __host__ __device__ dtrian::dtrian(const std::initializer_list<dvec> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dtrian: Invalid size!");
+	else throw EXCEPTION("dtrian: Invalid size!");
 	#endif
 }
 
@@ -116,7 +112,7 @@ __host__ __device__ ditrian::ditrian(const std::initializer_list<int> &list)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("ditrian: Invalid size!");
+	else throw EXCEPTION("ditrian: Invalid size!");
 	#endif
 }
 
@@ -124,7 +120,7 @@ __host__ __device__ double& dvec::operator()(int row)
 {
 	if(row<size)return v[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec: Index out of buond!");
+	else throw EXCEPTION("dvec: Index out of buond!");
 	#endif
 }
 
@@ -132,7 +128,7 @@ __host__ __device__ double dvec::operator()(int row) const
 {
 	if(row<size)return v[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec: Index out of buond!");
+	else throw EXCEPTION("dvec: Index out of buond!");
 	#endif
 }
 
@@ -140,7 +136,7 @@ __host__ __device__ int& divec::operator()(int row)
 {
 	if(row<size)return v[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("divec: Index out of buond!");
+	else throw EXCEPTION("divec: Index out of buond!");
 	#endif
 }
 
@@ -148,7 +144,7 @@ __host__ __device__ int divec::operator()(int row) const
 {
 	if(row<size)return v[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("divec: Index out of buond!");
+	else throw EXCEPTION("divec: Index out of buond!");
 	#endif
 }
 
@@ -156,7 +152,7 @@ __host__ __device__ double& dmat::operator()(int row, int col)
 {
 	if(row<rows && col<cols)return m[row][col];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat: Index out of buond!");
+	else throw EXCEPTION("dmat: Index out of buond!");
 	#endif
 }
 
@@ -164,7 +160,7 @@ __host__ __device__ double dmat::operator()(int row, int col) const
 {
 	if(row<rows && col<cols)return m[row][col];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat: Index out of buond!");
+	else throw EXCEPTION("dmat: Index out of buond!");
 	#endif
 }
 
@@ -172,7 +168,7 @@ __host__ __device__ dvec& dtrian::operator()(int row)
 {
 	if(row<size)return p[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dtrian: Index out of buond!");
+	else throw EXCEPTION("dtrian: Index out of buond!");
 	#endif
 }
 
@@ -180,7 +176,7 @@ __host__ __device__ dvec dtrian::operator()(int row) const
 {
 	if(row<size)return p[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dtrian: Index out of buond!");
+	else throw EXCEPTION("dtrian: Index out of buond!");
 	#endif
 }
 
@@ -188,7 +184,7 @@ __host__ __device__ int& ditrian::operator()(int row)
 {
 	if(row<size)return p[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("ditrian: Index out of buond!");
+	else throw EXCEPTION("ditrian: Index out of buond!");
 	#endif
 }
 
@@ -196,60 +192,60 @@ __host__ __device__ int ditrian::operator()(int row) const
 {
 	if(row<size)return p[row];
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("ditrian: Index out of buond!");
+	else throw EXCEPTION("ditrian: Index out of buond!");
 	#endif
 }
 
 std::ostream& operator<<(std::ostream& out, const dvec &v)
 {
-	std::cout << "dvec size: " << v.size << std::endl;
+	out << "dvec size: " << v.size << std::endl;
 	for(int i=0;i<v.size;++i)
 	{
-		std::cout << v(i) <<  std::endl;
+		out << v(i) <<  std::endl;
 	}
 	return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const divec &v)
 {
-	std::cout << "divec size: " << v.size << std::endl;
+	out << "divec size: " << v.size << std::endl;
 	for(int i=0;i<v.size;++i)
 	{
-		std::cout << v(i) <<  std::endl;
+		out << v(i) <<  std::endl;
 	}
 	return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const dmat &A)
 {
-	std::cout << "dmat size: " << A.rows << "x" << A.cols << std::endl;
+	out << "dmat size: " << A.rows << "x" << A.cols << std::endl;
 	for(int i=0;i<A.rows;++i)
 	{
 		for(int j=0;j<A.cols;++j)
 		{
-			std::cout << A(i,j) << " ";
+			out << A(i,j) << " ";
 		}
-		std::cout << std::endl;
+		out << std::endl;
 	}
 	return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const dtrian &t)
 {
-	std::cout << "dtrian size: " << t.size << std::endl << std::endl;
+	out << "dtrian size: " << t.size << std::endl << std::endl;
 	for(int i=0;i<t.size;++i)
 	{
-		std::cout << t(i) <<  std::endl;
+		out << t(i) <<  std::endl;
 	}
 	return out;
 }
 
 std::ostream& operator<<(std::ostream& out, const ditrian &t)
 {
-	std::cout << "ditrian size: " << t.size << std::endl;
+	out << "ditrian size: " << t.size << std::endl;
 	for(int i=0;i<t.size;++i)
 	{
-		std::cout << t(i) <<  std::endl;
+		out << t(i) <<  std::endl;
 	}
 	return out;
 }
@@ -393,7 +389,7 @@ __host__ __device__ dvec operator+(const dvec &a, const dvec &b)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec +: Incompatible size!");
+	else throw EXCEPTION("dvec +: Incompatible size!");
 	#endif
 	return c;
 }
@@ -414,7 +410,7 @@ __host__ __device__ dmat operator+(const dmat &A, const dmat &B)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat +: Incompatible size!");
+	else throw EXCEPTION("dmat +: Incompatible size!");
 	#endif
 	return C;
 }
@@ -428,7 +424,7 @@ __host__ __device__ dvec operator-(const dvec &a, const dvec &b)
 		c = a+(-1.0)*b;
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec -: Incompatible size!");
+	else throw EXCEPTION("dvec -: Incompatible size!");
 	#endif
 	return c;
 }
@@ -443,7 +439,7 @@ __host__ __device__ dmat operator-(const dmat &A, const dmat &B)
 		C = A+(-1.0)*B;
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat -: Incompatible size!");
+	else throw EXCEPTION("dmat -: Incompatible size!");
 	#endif
 	return C;
 }
@@ -467,7 +463,7 @@ __host__ __device__ dmat operator*(const dmat &A, const dmat &B)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dmat *: Incompatible size!");
+	else throw EXCEPTION("dmat *: Incompatible size!");
 	#endif
 	return C;
 }
@@ -487,7 +483,7 @@ __host__ __device__ dvec operator*(const dmat &A, const dvec &v)
 		} 
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dvec *: Incompatible size!");
+	else throw EXCEPTION("dvec *: Incompatible size!");
 	#endif
 	return c;
 }
@@ -503,7 +499,7 @@ __host__ __device__ double ddot(const dvec &a, const dvec &b)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("ddot: Incompatible size!");
+	else throw EXCEPTION("ddot: Incompatible size!");
 	#endif
 	return c;
 }
@@ -516,7 +512,7 @@ __host__ __device__ dvec dhat(const dvec &a, const dvec &b)
 		c = {a(1)*b(2)-a(2)*b(1),a(2)*b(0)-a(0)*b(2),a(0)*b(1)-a(1)*b(0)};
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dhat: Incompatible size!");
+	else throw EXCEPTION("dhat: Incompatible size!");
 	#endif
 	return c;
 }
@@ -532,7 +528,7 @@ __host__ __device__ double ddet(const dmat &A)
 		det = 	A(0,0)*A(1,1)*A(2,2)+A(0,1)*A(1,2)*A(2,0)+A(0,2)*A(1,0)*A(2,1)
 				-A(2,0)*A(1,1)*A(0,2)-A(2,1)*A(1,2)*A(0,0)-A(2,2)*A(1,0)*A(0,1);
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("ddet: Non-squared matrix!");
+	else throw EXCEPTION("ddet: Non-squared matrix!");
 	#endif	
 	return det;
 }
@@ -548,7 +544,7 @@ __host__ __device__ double dtrace(const dmat &A)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dtrace: Non-squared matrix!");
+	else throw EXCEPTION("dtrace: Non-squared matrix!");
 	#endif	
 	return trace;
 }
@@ -582,11 +578,11 @@ __host__ __device__ dmat inv(const dmat &A)
 			B = 1.0/detA*(0.5*(pow(dtrace(A),2.0) - dtrace(A*A))*I-dtrace(A)*A+A*A);
 		}
 		#ifndef __CUDA_ARCH__
-		else throw std::invalid_argument("inv: Non-squared matrix!");
+		else throw EXCEPTION("inv: Non-squared matrix!");
 		#endif	
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("inv: Singular matrix!");
+	else throw EXCEPTION("inv: Singular matrix!");
 	#endif
 	return B; 
 }

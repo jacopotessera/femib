@@ -3,6 +3,7 @@
 */
 
 #include "Log.h"
+#include "../../stacktrace/stacktrace.h"
 
 using namespace logx;
 
@@ -13,6 +14,7 @@ Logger::Logger()
 	m_LogFile = "log/default.log";
 	m_File.open(m_LogFile.c_str(), std::ios::out|std::ios::app);
 	m_LogLevel = DISABLE_LOG;
+	m_LogPID = false;
 	m_LogType = CONSOLE_LOG;
 	m_LogLevels["Log.cpp"] = LOG_LEVEL_INFO;
 }
@@ -22,15 +24,35 @@ Logger::~Logger()
 	m_File.close();
 }
 
+static void handler(int sig)
+{
+	std::ostringstream ss;
+	ss << "Caught signal " << sig;
+	LOG_ERROR(ss);
+	exit(1);
+}
+
 Logger* Logger::getInstance() throw()
 {
 	if(m_Instance == 0) 
 	{
 		m_Instance = new Logger();
+
+		signal(SIGSEGV, handler);
+		signal(SIGINT, handler);
+		signal(SIGQUIT, handler);
+		signal(SIGKILL, handler);
+
 		LOG_INFO("Logger inizialized.");
 		std::ostringstream ss;
 		ss << "Global LogLevel set to " << m_Instance->logLevelName[m_Instance->m_LogLevel] << ".";
 		LOG_INFO(ss);
+
+		if(m_Instance->m_LogPID)
+			LOG_INFO("PID logging is enabled.");
+		else
+			LOG_INFO("PID logging not is enabled.");
+
 		if(m_Instance->m_LogType & CONSOLE_LOG)
 		{
 			std::ostringstream tt;
@@ -97,10 +119,23 @@ std::string Logger::getCurrentTime()
 	return currentTime;
 }
 
-void Logger::log(const char* file, int line, const char* text, LOG_LEVEL logLevel) throw()
+void Logger::log(const char* file, int line, const char* function, const char* text, LOG_LEVEL logLevel) throw()
 {
 	std::string data;
 	data.append("["+logLevelNameFormatted[logLevel]+"][");
+	if(m_LogPID)
+	{
+		char cpid[6];
+		sprintf(cpid, "%d", ::getpid());
+		data.append(cpid);
+		data.append("-");
+		char cppid[6];
+		sprintf(cppid, "%d", ::getppid());
+		data.append(cppid);
+		data.append(" - ");
+	}
+	data.append(function);
+	data.append("@");
 	data.append(file);
 	data.append(":");
 	char cline[6];
@@ -108,6 +143,12 @@ void Logger::log(const char* file, int line, const char* text, LOG_LEVEL logLeve
 	data.append(cline);
 	data.append("]: ");
 	data.append(text);
+
+	//print stacktrace on error
+	if(logLevel == 1)
+	{
+		data.append("\n"+printStacktrace());
+	}
 
 	if((m_LogType & FILE_LOG) && (getLogLevel(file) >= logLevel))
 	{
@@ -119,15 +160,15 @@ void Logger::log(const char* file, int line, const char* text, LOG_LEVEL logLeve
 	}
 }
 
-void Logger::log(const char* file, int line, std::string& text, LOG_LEVEL logLevel) throw()
+void Logger::log(const char* file, int line, const char* function, std::string& text, LOG_LEVEL logLevel) throw()
 {
-	log(file, line, text.data(), logLevel);
+	log(file, line, function, text.data(), logLevel);
 }
 
-void Logger::log(const char* file, int line, std::ostringstream& stream, LOG_LEVEL logLevel) throw()
+void Logger::log(const char* file, int line, const char* function, std::ostringstream& stream, LOG_LEVEL logLevel) throw()
 {
 	std::string text = stream.str();
-	log(file, line, text, logLevel);
+	log(file, line, function, text, logLevel);
 }
 
 void Logger::updateLogLevel(int logLevel)

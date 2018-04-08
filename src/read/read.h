@@ -12,6 +12,7 @@
 
 #include "../dmat/dmat.h"
 #include "../utils/Mesh.h"
+#include "../utils/Exception.h"
 #include "../../lib/Log.h"
 
 template<class T, class W>

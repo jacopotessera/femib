@@ -239,6 +239,7 @@ void Simulation::prepare()
 
 void Simulation::advance()
 {
+	auto t0 = std::chrono::high_resolution_clock::now();
 	LOG_INFO("clear...");clear();
 	LOG_INFO("buildK2f...");buildK2f();
 	if(full)
@@ -255,6 +256,10 @@ void Simulation::advance()
 	LOG_INFO("save...");save();
 	LOG_INFO("savePlotData...");savePlotData();
 	LOG_INFO("Done.");
+	auto t1 = std::chrono::high_resolution_clock::now();
+	double duration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+	std::ostringstream d0; d0 << "Simulation " << id << " timestep " << getTime() << " took " << duration << " microseconds.";
+	LOG_OK(d0);
 }
 
 void Simulation::advance(int steps)
@@ -603,7 +608,18 @@ void Simulation::updateX()
 	int time = timesteps.size()-1;
 
 	std::vector<dvec> Xt = S.getValuesInMeshNodes(timesteps[time-1].x);
+
+	for(dvec v : Xt)
+	{
+		std::ostringstream ss;
+		ss << v;
+		LOG_DEBUG(ss);
+	}
+
 	std::vector<int> MMM = V.collisionDetection(Xt);
+	std::ostringstream ss;
+	ss << "CollisionDetection done. Found " << MMM.size() << " / " <<  Xt.size() << " points.";
+	LOG_DEBUG(ss);
 
 	std::vector<dvec> u;
 	u.reserve(S.nodes.P.size());
@@ -615,6 +631,7 @@ void Simulation::updateX()
 		{
 			int i = S.nodes.T[n][k];
 			int m=MMM[i];
+			assert(m>-1);
 			u[i]= compose(V(timesteps[time].u,m),S(timesteps[time-1].x,n)).x(S.nodes.P[i]);
 		}
 	}
@@ -634,6 +651,7 @@ timestep Simulation::eigen2timestep(evec a)
 {
 	LOG_INFO("eigen2timestep...");
 	timestep t;
+
 	evec bV = a.block(0,0,V.spaceDim-V.nBT,1);
 	evec aV = getColumns(V.E.sparseView(),V.notEdge)*bV;
 	std::vector<double> tV = join(bV,aV,V.notEdge,V.edge);
@@ -642,6 +660,10 @@ timestep Simulation::eigen2timestep(evec a)
 	evec aQ = getColumns(Q.E.sparseView(),Q.notEdge)*bQ;
 	std::vector<double> tQ = join(bQ,aQ,Q.notEdge,Q.edge);
 
+	t.u = tV;
+	t.q = tQ;
+
+if(full){
 	evec bS = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT,0,S.spaceDim-S.nBT,1);
 	evec aS = getColumns(S.E.sparseView(),S.notEdge)*bS;
 	std::vector<double> tS = join(bS,aS,S.notEdge,S.edge);
@@ -653,18 +675,16 @@ timestep Simulation::eigen2timestep(evec a)
 	evec bL = a.block(V.spaceDim-V.nBT+Q.spaceDim-Q.nBT+S.spaceDim-S.nBT,0,L.spaceDim-L.nBT,1);
 	evec aL = getColumns(L.E.sparseView(),L.notEdge)*bL;
 	std::vector<double> tL = join(bL,aL,L.notEdge,L.edge);
-
+	//t.x = eigen2vector(bS);
+	//t.l = eigen2vector(bL);
+	t.x = tS;
+	t.l = tL;
+}
 	//std::cout << tV << std::endl;
 	//std::cout << tQ << std::endl;
 	//std::cout << tS << std::endl;
 	//std::cout << eigen2vector(bL) << std::endl;
 
-	t.u = tV;
-	t.q = tQ;
-	t.x = tS;
-	t.l = tL;	
-	//t.x = eigen2vector(bS);
-	//t.l = eigen2vector(bL);
 
 	/*int j=0;
 	for(int i=0;i<V.spaceDim && j<a.size();++i)

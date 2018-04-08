@@ -22,7 +22,7 @@ FiniteElement FiniteElementService::getFiniteElement(std::string f)
 	}
 	else
 	{
-		throw std::invalid_argument("FiniteElementService: "+f+" not found!");
+		throw EXCEPTION("FiniteElementService: "+f+" not found!");
 	}
 }
 

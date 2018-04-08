@@ -10,6 +10,7 @@
 #include <stdexcept>
 
 #include "../dmat/dmat_impl.h"
+#include "../utils/Exception.h"
 #include "../utils/Mesh.h"
 
 // divergenza

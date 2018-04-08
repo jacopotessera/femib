@@ -27,7 +27,7 @@ double div(const dmat &A)
 		}
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("div: Non-squared matrix!");
+	else throw EXCEPTION("div: Non-squared matrix!");
 	#endif
 	return d;
 }
@@ -50,7 +50,7 @@ double dpi(const dmat &A, const dmat &B)
 				A(2,0)*B(0,2)+A(2,1)*B(1,2)+A(2,2)*B(2,2);
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dpi: Non-squared matrix!");
+	else throw EXCEPTION("dpi: Non-squared matrix!");
 	#endif
 }
 
@@ -69,7 +69,7 @@ double pf(const dmat &A, const dvec &B)
 		}*/
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("pf: Incompatible size!");
+	else throw EXCEPTION("pf: Incompatible size!");
 	#endif*/
 }
 
@@ -89,7 +89,7 @@ double pf(const dmat &A, const dmat &B)
 		}*/
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("pf: Incompatible size!");
+	else throw EXCEPTION("pf: Incompatible size!");
 	#endif*/
 		
 	/*if(A.rows == 1 && A.cols == 1 && B.rows == 1 && B.cols == 1)
@@ -107,7 +107,7 @@ double pf(const dmat &A, const dmat &B)
 				A(2,0)*B(2,0)+A(2,1)*B(2,1)+A(2,2)*B(2,2);
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("pf: Non-squared matrix!");
+	else throw EXCEPTION("pf: Non-squared matrix!");
 	#endif*/
 }
 
@@ -135,7 +135,7 @@ dvec dotdiv(const dvec &b, const dmat &B)
 		b(0)*B(2,0)+b(1)*B(2,1)+b(2)*B(2,2)};
 	}
 	#ifndef __CUDA_ARCH__
-	else throw std::invalid_argument("dotdiv: Incompatible dimensions!");
+	else throw EXCEPTION("dotdiv: Incompatible dimensions!");
 	#endif
 	return v;
 }

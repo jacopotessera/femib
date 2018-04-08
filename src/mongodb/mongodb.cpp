@@ -65,8 +65,9 @@ void save_sim(dbconfig db, miniSim sim){
 	{
 		std::ostringstream ss;
 		ss << "save_sim: simulation id = " << sim.id << " already present in collection!";
-		LOG_ERROR(ss);
-		throw std::invalid_argument("save_sim: sim already present in collection!");
+		//LOG_ERROR(ss);
+		//throw EXCEPTION("save_sim: sim already present in collection!");
+		throw EXCEPTION(ss.str());
 	}
 }
 
@@ -108,8 +109,9 @@ void save_timestep(dbconfig db, timestep t)
 	{
 		std::ostringstream ss;
 		ss << "save_timestep: timestep id = " << t.id << ", time = " << t.time << " already present in collection!";
-		LOG_ERROR(ss);
-		throw std::invalid_argument("save_timestep: timestep already present in collection!");
+		//LOG_ERROR(ss);
+		//throw EXCEPTION("save_timestep: timestep already present in collection!");
+		throw EXCEPTION(ss.str());
 	}
 }
 
@@ -143,8 +145,9 @@ void save_plotData(dbconfig db, plotData t)
 	{
 		std::ostringstream ss;
 		ss << "save_plotData: plotData id = " << t.id << ", time = " << t.time << " already present in collection!";
-		LOG_ERROR(ss);
-		throw std::invalid_argument("save_plotData: plotData already present in collection!");
+		//LOG_ERROR(ss);
+		//throw EXCEPTION("save_plotData: plotData already present in collection!");
+		throw EXCEPTION(ss.str());
 	}
 }
 

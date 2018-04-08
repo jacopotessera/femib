@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "../utils/Mesh.h"
+#include "../utils/Exception.h"
 #include "FiniteElement.h"
 
 class FiniteElementService
