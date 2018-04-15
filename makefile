@@ -128,8 +128,8 @@ clean:
 	@echo "Done."
 
 plot:
-	@chmod +x plot/plot.py
-	@./plot/plot.py $(ID) $(OP)
+	@chmod +x plot/plotSimulation.py
+	@./plot/plotSimulation.py $(ID) $(OP)
 
 doc:
 	@echo "Great Scott!"

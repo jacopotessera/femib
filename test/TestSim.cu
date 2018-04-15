@@ -110,14 +110,14 @@ void TestSimulation::setUp(void)
 	S = FiniteElementSpaceS(triMeshS,finElemS,gS);
 	S.buildFiniteElementSpace();
 	S.buildEdge();
-	L = FiniteElementSpaceL(triMeshS,finElemS,gS);
-	L.buildFiniteElementSpace();
-	L.buildEdge();
+	//L = FiniteElementSpaceL(triMeshS,finElemS,gS);
+	//L.buildFiniteElementSpace();
+	//L.buildEdge();
 
 	Parameters parameters;
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
-	parameters.deltarho = 1.0;
+	parameters.deltarho = 0.0;
 	parameters.kappa = 100.0;
 	parameters.deltat = 0.001;
 	parameters.TMAX = 10000;
@@ -146,8 +146,8 @@ void TestSimulation::setUp(void)
 	int AA = A.size() - 1;
 	for(int i=0;i<S.spaceDim/2;++i)
 	{
-		x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI+M_PI/4)+xC;
-		x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI+M_PI/4)+yC;
+		x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI)+xC;
+		x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI)+yC;
 		std::ostringstream ss;
 		ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
 		LOG_TRACE(ss);
