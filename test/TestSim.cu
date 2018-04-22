@@ -72,21 +72,30 @@ void TestSimulation::setUp(void)
 	std::ostringstream ss_omp;	
 	ss_omp << "OpenMP threads set to " << Eigen::nbThreads() << ".";
 	LOG_DEBUG(ss_omp);
+
+
 	pV = "mesh/perugia/p3.mat";
 	tV = "mesh/perugia/t3.mat";
 	eV = "mesh/perugia/e3.mat";
 
-	pS = "mesh/pS_64.mat";
-	tS = "mesh/tS_64.mat";
-	eS = "mesh/eS_64.mat";
+	STRUCTURE_THICKNESS s_thickness = THIN;
 
-	//pS = "mesh/pS_64_4.mat";
-	//tS = "mesh/tS_64_4.mat";
-	//eS = "mesh/eS_64_4.mat";
+	if(s_thickness == THICK){
+		pS = "mesh/pS_32_3.mat";
+		tS = "mesh/tS_32_3.mat";
+		eS = "mesh/eS_32_3.mat";
+		gS = gaussService.getGauss("gauss5_2d");
+		finElemS = finiteElementService.getFiniteElement("P1_2d2d");
+	}
+	else if(s_thickness == THIN){
+		pS = "mesh/pS_64.mat";
+		tS = "mesh/tS_64.mat";
+		eS = "mesh/eS_64.mat";
+		gS = gaussService.getGauss("gauss5_1d");
+		finElemS = finiteElementService.getFiniteElement("P1_1d2d");
+	}
 
 	gV = gaussService.getGauss("gauss5_2d");
-	gS = gaussService.getGauss("gauss5_1d");
-	//gS = gaussService.getGauss("gauss5_2d");
 	mV = readMesh(pV,tV,eV);
 	mS = readMesh(pS,tS,eS);
 
@@ -98,8 +107,11 @@ void TestSimulation::setUp(void)
 
 	finElemQ = finiteElementService.getFiniteElement("P1P0_2d1d");
 	finElemV = finiteElementService.getFiniteElement("P2_2d2d");
-	finElemS = finiteElementService.getFiniteElement("P1_1d2d");
-	//finElemS = finiteElementService.getFiniteElement("P1_2d2d");
+
+	if(finElemS.check())
+		LOG_OK("finElemS ok");
+	else
+		throw EXCEPTION("finElemS!");
 
 	V = FiniteElementSpaceV(triMeshV,finElemV,gV);
 	V.buildFiniteElementSpace();
@@ -107,7 +119,7 @@ void TestSimulation::setUp(void)
 	Q = FiniteElementSpaceQ(triMeshV,finElemQ,gV);
 	Q.buildFiniteElementSpace();
 	Q.buildEdge();
-	S = FiniteElementSpaceS(triMeshS,finElemS,gS);
+	S = FiniteElementSpaceS(triMeshS,finElemS,gS,s_thickness);
 	S.buildFiniteElementSpace();
 	S.buildEdge();
 	//L = FiniteElementSpaceL(triMeshS,finElemS,gS);
@@ -119,7 +131,7 @@ void TestSimulation::setUp(void)
 	parameters.eta = 0.01;
 	parameters.deltarho = 0.0;
 	parameters.kappa = 100.0;
-	parameters.deltat = 0.001;
+	parameters.deltat = 0.0001;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -127,7 +139,7 @@ void TestSimulation::setUp(void)
 	t0.time = 0; t0.id = id;
 	t1.time = 1; t1.id = id;
 
-	double gamma = 1.1;
+	double gamma = 1.0;
 	double R = 0.6;
 	double xC = 0.0;
 	double yC = 0.0;
@@ -135,22 +147,23 @@ void TestSimulation::setUp(void)
 	std::vector<dvec> A = read<dvec,double>(pS);
 	std::vector<double> x(S.spaceDim);
 
-	/*for(int i=0;i<S.spaceDim/2;++i){
-		x[i]=A[i](0)*gamma;
-		x[i+S.spaceDim/2]=A[i](1)*(1.0/gamma);
-		std::ostringstream ss;
-		ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
-		LOG_TRACE(ss);
-	}*/
-	
 	int AA = A.size() - 1;
 	for(int i=0;i<S.spaceDim/2;++i)
 	{
-		x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI)+xC;
-		x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI)+yC;
-		std::ostringstream ss;
-		ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
-		LOG_TRACE(ss);
+		if(s_thickness == THIN){
+			x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI)+xC;
+			x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI)+yC;
+			std::ostringstream ss;
+			ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
+			LOG_TRACE(ss);
+		}
+		else if(s_thickness == THICK){
+			x[i]=A[i](0)*gamma;
+			x[i+S.spaceDim/2]=A[i](1)*(1.0/gamma);
+			std::ostringstream ss;
+			ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
+			LOG_TRACE(ss);
+		}
 	}
 
 	t0.x = x;

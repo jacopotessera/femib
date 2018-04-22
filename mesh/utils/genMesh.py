@@ -49,7 +49,6 @@ print("")
 for t in T:
 	print(t)
 
-
 fig, ax = pyplot.subplots(1,1)
 fig.set_tight_layout(True)
 
@@ -67,9 +66,6 @@ for t in T:
 	#tZ = [P[t[0]][2],P[t[1]][2],P[t[2]][2],P[t[0]][2]]
 	ax.plot(tX,tY,'b-',linewidth=0.2)
 
-
-pyplot.show()
-
 if save:
 	f = open('pS_'+str(s)+'_'+str(n)+'.mat', 'w')
 	for p in P:
@@ -80,4 +76,6 @@ if save:
 	for t in T:
 		f.write(str(t[0])+'\t'+str(t[1])+'\t'+str(t[2])+'\t\n')
 	f.close()
+
+pyplot.show()
 

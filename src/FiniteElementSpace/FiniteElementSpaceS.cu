@@ -20,7 +20,7 @@ void FiniteElementSpaceS::buildEdge()
 	if(thickness==THIN)
 	{
 		LOG_INFO("finiteElemenSpaceS: thin.");
-		edge = nodes.E;//TODO 1d? 3d?
+		edge = join(nodes.E,nodes.E+(spaceDim/ambientDim));//TODO 1d? 3d?
 		nBT = edge.size();
 		notEdge = setdiff(linspace(spaceDim),edge);
 		std::vector<Eigen::Triplet<double>> tE;

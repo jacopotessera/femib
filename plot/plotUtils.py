@@ -103,6 +103,7 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 	P = []
 	A = []
 	E = []
+	W = []
 
 	for t in timesteps:
 		if t["time"]%(numpy.ceil(TMAX/plotConfig["ffw"])) == 0:
@@ -115,9 +116,30 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 
 			uu = list(map(lambda x : x[1][0],t["u"] ))
 			vv = list(map(lambda x : x[1][1],t["u"] ))
+
+			uuu = [0]*len(uu)
+			for i,u in enumerate(uu):
+				ii = i//21
+				qq = i%21
+				uuu[i] = uu[qq*21+ii]
+
+			vvv = [0]*len(vv)
+			for i,v in enumerate(vv):
+				ii = i//21
+				qq = i%21
+				vvv[i] = vv[qq*21+ii]
+
 			U.append(uu)
 			V.append(vv)
-			
+			W.append({	"x":list(map(lambda x : x[0][0],t["u"] )),"y":list(map(lambda x : x[0][1],t["u"] )),
+						"u":list(map(lambda x : x[1][0],t["u"] )),"v":list(map(lambda x : x[1][1],t["u"] ))})
+
+			p0 = list(filter(lambda x : abs(x[0][0])<0.001 and abs(x[0][1])<0.001, t["q"]))
+			print("p(0,0) = ",p0[0][1][0])
+
+			p1 = list(filter(lambda x : abs(x[0][0]-1)<0.001 and abs(x[0][1]-1)<0.001, t["q"]))
+			print("p(1,1) = ",p1[0][1][0])
+
 			pp = []
 			for ii in range(len(t["q"])):
 				if ii%(plotConfig["steps"]+1)==0:
@@ -136,7 +158,7 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 		
 			print(str(t["time"]) + ": area = " + str(area/plotConfig["area0"]) + "%, e = " +str(aa/AA))
 
-	return {"T":T,"X":[X,Y],"U":[U,V],"P":P,"A":[A,E]}
+	return {"T":T,"X":[X,Y],"U":[U,V],"P":P,"A":[A,E],"W":W}
 	
 if __name__ == '__main__':
 	#PlotUtils.test()

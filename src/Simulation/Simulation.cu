@@ -25,6 +25,26 @@ Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
 
 Simulation::~Simulation(){}
 
+double Simulation::getEnergy(timestep t)
+{
+	std::function<double(dvec)> isInS = [](dvec x){
+		if(false)
+			return 1;
+		else
+			return 0;
+	};
+
+	double Ekin = 0.0;
+	for(int n=0;n<V.nodes.T.size();++n)
+		Ekin += 0.5*V.T.integrate((constant(parameters.rho)+parameters.deltarho*isInS)*ddot(V(t.u,n).x,V(t.u,n).x),n);
+
+	double Epot = 0.0;
+	for(int n=0;n<S.nodes.T.size();++n)
+		Epot += parameters.kappa*S.T.integrate(pf(S(t.x,n).dx,S(t.x,n).dx),n);
+
+	return Ekin+Epot;
+}
+
 void Simulation::setInitialValues(timestep t0, timestep t1)
 {
 	t0.time = 0;
@@ -189,8 +209,14 @@ ss << "x    = [ " << pp(0) << " ]";//<< " , " << pp(1) << " ]";
 tt << "S(x) = [ " << s(0) << " , " << s(1) << " ]";
 LOG_TRACE(ss);
 LOG_TRACE(tt);
-		p.x.push_back({dvec2vector(pp),dvec2vector(s)});
-	}	
+		if(s(0)!=0 || s(1)!=0){
+			p.x.push_back({dvec2vector(pp),dvec2vector(s)});
+		}
+		else{
+			LOG_WARNING("S(x) == 0 !");
+			p.x.push_back({dvec2vector(pp),p.x[p.x.size()-1][1]});
+		}
+	}
 
 	return p;
 }
@@ -258,6 +284,9 @@ void Simulation::advance()
 	LOG_INFO("Done.");
 	auto t1 = std::chrono::high_resolution_clock::now();
 	double duration = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+
+	std::ostringstream c0; c0 << "Energy: " << getEnergy(timesteps[getTime()]);
+	LOG_OK(c0);
 	std::ostringstream d0; d0 << "Simulation " << id << " timestep " << getTime() << " took " << duration << " microseconds.";
 	LOG_OK(d0);
 }
@@ -613,7 +642,7 @@ void Simulation::updateX()
 	{
 		std::ostringstream ss;
 		ss << v;
-		LOG_DEBUG(ss);
+		LOG_TRACE(ss);
 	}
 
 	std::vector<int> MMM = V.collisionDetection(Xt);

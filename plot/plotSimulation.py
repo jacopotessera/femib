@@ -84,6 +84,10 @@ class PlotSimulation():
 		fig.set_tight_layout(True)
 		#print('fig size: {0} DPI, size in inches {1}'.format(fig.get_dpi(), fig.get_size_inches()))
 
+
+		#grid_x = self.plotData["W"][0]["x"]
+		#grid_y = self.plotData["W"][0]["y"]
+
 		def update(i):
 
 			ax[0][0].cla()
@@ -94,6 +98,11 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])	
 			ax[0][0].set_xlabel(label)
 			ax[0][0].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',units='inches')
+			circle = pyplot.Circle((0,0), 0.72, color='r',fill=False)
+			ax[0][0].add_artist(circle)
+			circle = pyplot.Circle((0,0), 0.4, color='r',fill=False)
+			ax[0][0].add_artist(circle)
+			ax[0][0].axis('equal')
 
 			ax[0][1].cla()
 			ax[0][1].set_xlim([-1,1])
@@ -101,7 +110,7 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])
 			ax[0][1].set_xlabel(label)
 			ax[0][1].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',width=0.005)
-			
+
 			ax[0][2].cla()
 			ax[0][2].set_xlim([-1,1])
 			ax[0][2].set_ylim([-1,1])

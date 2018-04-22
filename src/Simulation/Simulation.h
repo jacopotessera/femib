@@ -67,6 +67,8 @@ class Simulation
 		Simulation();
 		~Simulation();
 
+		double getEnergy(timestep t);
+
 		Simulation(std::string id,dbconfig db,Parameters parameters,
 			FiniteElementSpaceV V,FiniteElementSpaceQ Q,
 			FiniteElementSpaceS S,FiniteElementSpaceL L,
@@ -105,7 +107,6 @@ class Simulation
 		plotData timestep2plotData(timestep t);
 		void savePlotData(int time);
 		void savePlotData();
-
 
 		void saveStreamline();
 

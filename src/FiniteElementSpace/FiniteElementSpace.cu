@@ -98,6 +98,7 @@ void FiniteElementSpace::setSpaceDim()
 
 F FiniteElementSpace::operator()(const std::vector<double> &v)
 {
+	LOG_WARNING("FiniteElementSpace::operator() not yet implemented!");
 	std::function<dvec(dvec)> a = [&](const dvec &x)
 	{
 		return dvec({});

@@ -40,15 +40,18 @@ for e_line in e_file:
 		if e_word != '':
 			E.append(int(e_word))
 
-#L = list(map(lambda x : list(map(lambda y : (P[y[1]][0]-P[y[0]][0])**2+(P[y[1]][1]-P[y[0]][1])**2 ,x)) , list(map(lambda x : list(zip(x,numpy.roll(x,-1))),T))))
-#LL = list(map(lambda x : (min(x),max(x),min(x)/max(x)) , L ))
+L = list(map(lambda x : list(
+	map(lambda y : math.sqrt((P[y[1]][0]-P[y[0]][0])**2+(P[y[1]][1]-P[y[0]][1])**2) ,x)),
+	list(map(lambda x : list(zip(x,numpy.roll(x,-1))),T))))
 
-#min_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
-#max_min = math.sqrt(min(list(map(lambda x : x[0],LL))))
-#min_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
-#max_max = math.sqrt(min(list(map(lambda x : x[1],LL))))
-#min_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
-#max_ = math.sqrt(min(list(map(lambda x : x[2],LL))))
+LL = list(map(lambda x : (min(x),max(x),min(x)/max(x)) , L ))
+
+min_min = min(list(map(lambda x : x[0],LL)))
+max_min = max(list(map(lambda x : x[0],LL)))
+min_max = min(list(map(lambda x : x[1],LL)))
+max_max = max(list(map(lambda x : x[1],LL)))
+min_ = min(list(map(lambda x : x[2],LL)))
+max_ = max(list(map(lambda x : x[2],LL)))
 
 fig, ax = pyplot.subplots(1,1)
 fig.set_tight_layout(True)
@@ -70,6 +73,6 @@ for t in T:
 for e in E:
 	ax.plot(P[e][0],P[e][1],"r.")
 
-ax.set_xlabel(p_)#+": "+str(min_)+" - "+str(max_max))
+ax.set_xlabel(p_+": "+str(min_max)+" - "+str(max_max))
 pyplot.show()
 
