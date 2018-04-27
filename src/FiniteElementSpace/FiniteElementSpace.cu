@@ -20,7 +20,13 @@ void FiniteElementSpace::buildEdge(){}
 BaseFunction FiniteElementSpace::getBaseFunction(int i, int n)
 {
 	BaseFunction b;
-	b.x = [i,n,this](const dvec &x){return baseFunction[i].x(T.Binv[n]*(x-T.b[n]));};
+	b.x = [i,n,this](const dvec &x){
+		for(int m : T.q2t(n))
+		{
+			if(serial_accurate(x,T.mt.T[m]))
+				return baseFunction[i].x(T.Binv[m]*(x-T.b[m]));
+		}
+	};
 	b.dx = [i,n,this](const dvec &x){return baseFunction[i].dx(T.Binv[n]*(x-T.b[n]))*T.Binv[n];};
 	b.f = {b.x,b.dx};
 	b.i = getIndex(i, n);
