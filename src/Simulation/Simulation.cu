@@ -25,7 +25,7 @@ Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
 
 Simulation::~Simulation(){}
 
-double Simulation::getEnergy(timestep t)
+double Simulation::getKineticEnergy(timestep t)
 {
 	std::function<double(dvec)> isInS = [](dvec x){
 		if(false)
@@ -33,16 +33,24 @@ double Simulation::getEnergy(timestep t)
 		else
 			return 0;
 	};
-
 	double Ekin = 0.0;
 	for(int n=0;n<V.nodes.T.size();++n)
 		Ekin += 0.5*V.T.integrate((constant(parameters.rho)+parameters.deltarho*isInS)*ddot(V(t.u,n).x,V(t.u,n).x),n);
+	return Ekin;
+}
 
+double Simulation::getPotentialEnergy(timestep t)
+{
 	double Epot = 0.0;
 	for(int n=0;n<S.nodes.T.size();++n)
 		Epot += parameters.kappa*S.T.integrate(pf(S(t.x,n).dx,S(t.x,n).dx),n);
 
-	return Ekin+Epot;
+	return Epot;
+}
+
+double Simulation::getEnergy(timestep t)
+{
+	return getKineticEnergy(t)+getPotentialEnergy(t);
 }
 
 void Simulation::setInitialValues(timestep t0, timestep t1)
@@ -287,6 +295,10 @@ void Simulation::advance()
 
 	std::ostringstream c0; c0 << "Energy: " << getEnergy(timesteps[getTime()]);
 	LOG_OK(c0);
+	std::ostringstream c1; c1 << "Kinetic Energy: " << getKineticEnergy(timesteps[getTime()]);
+	LOG_OK(c1);
+	std::ostringstream c2; c2 << "Potential Energy: " << getPotentialEnergy(timesteps[getTime()]);
+	LOG_OK(c2);
 	std::ostringstream d0; d0 << "Simulation " << id << " timestep " << getTime() << " took " << duration << " microseconds.";
 	LOG_OK(d0);
 }

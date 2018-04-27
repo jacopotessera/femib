@@ -6,6 +6,7 @@
 
 from plotUtils import parse_id, parse_input, calcPlotData
 import sys, pymongo, numpy, matplotlib, matplotlib.pyplot as pyplot
+import itertools
 from matplotlib.animation import FuncAnimation
 
 class PlotSimulation():
@@ -98,9 +99,9 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])	
 			ax[0][0].set_xlabel(label)
 			ax[0][0].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',units='inches')
-			circle = pyplot.Circle((0,0), 0.72, color='r',fill=False)
+			circle = pyplot.Circle((0,0), 0.8, color='r',fill=False)
 			ax[0][0].add_artist(circle)
-			circle = pyplot.Circle((0,0), 0.4, color='r',fill=False)
+			circle = pyplot.Circle((0,0), 0.6, color='r',fill=False)
 			ax[0][0].add_artist(circle)
 			ax[0][0].axis('equal')
 
@@ -110,6 +111,7 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])
 			ax[0][1].set_xlabel(label)
 			ax[0][1].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',width=0.005)
+			ax[0][1].axis('equal')
 
 			ax[0][2].cla()
 			ax[0][2].set_xlim([-1,1])
@@ -119,8 +121,20 @@ class PlotSimulation():
 			matplotlib.rcParams['xtick.direction'] = 'out'
 			matplotlib.rcParams['ytick.direction'] = 'out'
 			matplotlib.rcParams['contour.negative_linestyle'] = 'dashed'
-			cs = ax[0][2].contour(grid_x,grid_y,self.plotData["P"][i])
-			ax[0][2].clabel(cs, inline=1, fontsize=10)
+
+			pNorm = list(itertools.chain.from_iterable(self.plotData["P"][i]))
+			vmin = min(pNorm)
+			vmax = max(pNorm)
+
+			norm = matplotlib.colors.Normalize(vmax=vmax,vmin=vmin)
+			ax[0][2].contourf(grid_x,grid_y,self.plotData["P"][i], 8, alpha=.75, norm=norm, cmap=pyplot.cm.magma)
+			C = ax[0][2].contour(grid_x,grid_y,self.plotData["P"][i], 8, colors='black', linewidth=.5)
+			ax[0][2].clabel(C, inline=1, fontsize=10)
+			pyplot.xticks([]), pyplot.yticks([])
+
+			#cs = ax[0][2].contour(grid_x,grid_y,self.plotData["P"][i])
+			#ax[0][2].clabel(cs, inline=1, fontsize=10)
+			ax[0][2].axis('equal')
 
 			ax[1][0].cla()
 			ax[1][0].plot(self.plotData["T"][:i],self.plotData["A"][0][:i],"-")

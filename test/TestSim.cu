@@ -78,7 +78,7 @@ void TestSimulation::setUp(void)
 	tV = "mesh/perugia/t3.mat";
 	eV = "mesh/perugia/e3.mat";
 
-	STRUCTURE_THICKNESS s_thickness = THIN;
+	STRUCTURE_THICKNESS s_thickness = THICK;
 
 	if(s_thickness == THICK){
 		pS = "mesh/pS_32_3.mat";
@@ -129,9 +129,9 @@ void TestSimulation::setUp(void)
 	Parameters parameters;
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
-	parameters.deltarho = 0.0;
-	parameters.kappa = 100.0;
-	parameters.deltat = 0.0001;
+	parameters.deltarho = 10.0;
+	parameters.kappa = 1.0;
+	parameters.deltat = 0.00001;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -139,7 +139,7 @@ void TestSimulation::setUp(void)
 	t0.time = 0; t0.id = id;
 	t1.time = 1; t1.id = id;
 
-	double gamma = 1.0;
+	double gamma = 1.1;
 	double R = 0.6;
 	double xC = 0.0;
 	double yC = 0.0;

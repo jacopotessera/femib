@@ -68,6 +68,8 @@ class Simulation
 		~Simulation();
 
 		double getEnergy(timestep t);
+		double getKineticEnergy(timestep t);
+		double getPotentialEnergy(timestep t);
 
 		Simulation(std::string id,dbconfig db,Parameters parameters,
 			FiniteElementSpaceV V,FiniteElementSpaceQ Q,
