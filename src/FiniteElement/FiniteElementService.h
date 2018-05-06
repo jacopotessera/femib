@@ -21,7 +21,7 @@ class FiniteElementService
 	private:
 		void createFiniteElementList();
 		virtual void createCustomFiniteElementList();
-		std::unordered_map<std::string,FiniteElement> finiteElementList;	
+		std::unordered_map<std::string,FiniteElement> finiteElementList;
 };
 
 #endif

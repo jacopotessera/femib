@@ -34,7 +34,8 @@ void TestCuda::setUp(void)
 	std::cout << std::endl;
 	logx::Logger::getInstance()->setLogLevel("src/Cuda/Cuda.cu",LOG_LEVEL_DEBUG);
 	c.getSize();
-	Cuda d;
+	Cuda d = Cuda(6000,10000000);
+	c.getSize();
 }
 
 void TestCuda::tearDown(void)

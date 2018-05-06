@@ -46,12 +46,7 @@ L = list(map(lambda x : list(
 
 LL = list(map(lambda x : (min(x),max(x),min(x)/max(x)) , L ))
 
-min_min = min(list(map(lambda x : x[0],LL)))
-max_min = max(list(map(lambda x : x[0],LL)))
-min_max = min(list(map(lambda x : x[1],LL)))
-max_max = max(list(map(lambda x : x[1],LL)))
-min_ = min(list(map(lambda x : x[2],LL)))
-max_ = max(list(map(lambda x : x[2],LL)))
+h = max(list(map(lambda x : x[1],LL)))
 
 fig, ax = pyplot.subplots(1,1)
 fig.set_tight_layout(True)
@@ -60,19 +55,27 @@ ax.cla()
 X = list(map(lambda x: x[0],P))
 Y = list(map(lambda x: x[1],P))
 #Z = list(map(lambda x: x[2],P))
+
 ax.plot(X,Y,"b.")
-ax.set_xlim([-1.1,1.1])
-ax.set_ylim([-1.1,1.1])
+ax.set_xlim([min(X)-0.1,max(X)+0.1])
+ax.set_ylim([min(Y)-0.1,max(Y)+0.1])
 
 for t in T:
-	tX = [P[t[0]][0],P[t[1]][0],P[t[2]][0],P[t[0]][0]]
-	tY = [P[t[0]][1],P[t[1]][1],P[t[2]][1],P[t[0]][1]]
-	#tZ = [P[t[0]][2],P[t[1]][2],P[t[2]][2],P[t[0]][2]]
+	tX = []
+	tY = []
+	#tZ = []
+	for tt in t:
+		tX.append(P[tt][0])
+		tY.append(P[tt][1])
+		#tZ.append(P[tt][2])
+	tX.append(P[t[0]][0])
+	tY.append(P[t[0]][1])
+	#tZ.append(P[t[0]][2])
 	ax.plot(tX,tY,'b-',linewidth=0.2)
 
 for e in E:
 	ax.plot(P[e][0],P[e][1],"r.")
 
-ax.set_xlabel(p_+": "+str(min_max)+" - "+str(max_max))
+ax.set_xlabel(p_+": "+str(h))
 pyplot.show()
 

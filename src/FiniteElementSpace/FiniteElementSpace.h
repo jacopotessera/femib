@@ -7,7 +7,7 @@
 
 #include <functional>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 #include <Eigen/Core>
@@ -21,6 +21,7 @@
 #include "../Gauss/GaussService.h"
 
 #include "../TriangleMesh/TriangleMesh.h"
+#include "../TriangleMesh/SimplicialMesh.h"
 #include "../FiniteElement/FiniteElement.h"
 #include "../FiniteElement/FiniteElementService.h"
 
@@ -29,12 +30,13 @@
 #include "../utils/utils.h"
 #include "../mongodb/struct.h"
 
+template <MeshType meshType>
 class FiniteElementSpace
 {
 	public:		
 		FiniteElementSpace();
 		~FiniteElementSpace();
-		FiniteElementSpace(TriangleMesh t, FiniteElement f, Gauss g);
+		FiniteElementSpace(SimplicialMesh<meshType> t, FiniteElement f, Gauss g);
 		void buildFiniteElementSpace();
 		void setElementDim();
 		void setSpaceDim();
@@ -52,7 +54,8 @@ class FiniteElementSpace
 		F getPreCalc(int n);
 		BaseFunction getBaseFunction(int i, int n);
 	//private:
-		TriangleMesh T;
+
+		SimplicialMesh<meshType> T;
 		Gauss gauss;
 		FiniteElement finiteElement;
 		int elementDim;
@@ -76,16 +79,21 @@ class FiniteElementSpace
 
 		int nBT;
 
-		std::vector<std::map<dvec,xDx>> preCalc;	
+		std::vector<std::unordered_map<dvec,xDx>> preCalc;
 		//std::vector<std::map<dvec,dvec>> xMini;
 		//std::vector<std::map<dvec,dmat>> dxMini;
 		//void buildMini(const std::vector<double> &v);
 		//F mini(int n);
 };
 
-miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace);
-FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
-Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace &E, const FiniteElementSpace &F);
+template<MeshType meshType>
+miniFE finiteElementSpace2miniFE(const FiniteElementSpace<meshType> &finiteElementSpace);
+
+template<MeshType meshType>
+FiniteElementSpace<meshType> miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
+
+template<MeshType meshType>
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshType> &E, const FiniteElementSpace<meshType> &F);
 
 #endif
 

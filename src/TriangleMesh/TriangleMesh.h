@@ -1,5 +1,5 @@
 /*
-*	TriangleMesh.cu
+*	TriangleMesh.h
 */
 
 #ifndef TRIANGLEMESH_H_INCLUDED_

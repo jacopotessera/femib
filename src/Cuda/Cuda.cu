@@ -20,26 +20,18 @@ Cuda::~Cuda(){}
 
 void Cuda::setStackSize(int stackSize)
 {
-	std::ostringstream ss;
-	ss << "Setting CUDA stack size to " << stackSize << " ...";
-	LOG_INFO(ss);
+	sLOG_INFO("Setting CUDA stack size to " << stackSize << " ...");
 	cudaDeviceSetLimit(cudaLimitStackSize,stackSize);
 
-	std::ostringstream tt;
-	tt << "CUDA stack size found to be " << getStackSize();
-	LOG_DEBUG(tt);
+	sLOG_DEBUG("CUDA stack size found to be " << getStackSize());
 }
 
 void Cuda::setHeapSize(int heapSize)
 {
-	std::ostringstream ss;
-	ss << "Setting CUDA heap size to " << heapSize << " ...";
-	LOG_INFO(ss);
+	sLOG_INFO("Setting CUDA heap size to " << heapSize << " ...");
 	cudaDeviceSetLimit(cudaLimitMallocHeapSize,heapSize*sizeof(double));
 
-	std::ostringstream tt;
-	tt << "CUDA heap size found to be " << getHeapSize();
-	LOG_DEBUG(tt);
+	sLOG_DEBUG("CUDA heap size found to be " << getHeapSize());
 }
 
 int Cuda::getStackSize()
@@ -58,16 +50,7 @@ int Cuda::getHeapSize()
 
 void Cuda::getSize()
 {
-	//size_t size_stack, size_heap;
-	//cudaDeviceGetLimit(&size_stack, cudaLimitStackSize);
-	//cudaDeviceGetLimit(&size_heap, cudaLimitMallocHeapSize);
-	//std::cout << "Stack size found to be " << (int)size_stack << std::endl;
-	//std::cout << "Heap size found to be " << (int)size_heap << std::endl;
-	std::ostringstream tt;
-	tt << "CUDA stack size found to be " << getStackSize();
-	LOG_INFO(tt);
-	std::ostringstream ss;
-	ss << "CUDA heap size found to be " << getHeapSize();
-	LOG_INFO(ss);
+	sLOG_INFO("CUDA stack size found to be " << getStackSize());
+	sLOG_INFO("CUDA heap size found to be " << getHeapSize());
 }
 

@@ -30,7 +30,6 @@ for m in range(n):
 for p in enumerate(P):
 	print(p)
 
-
 T = []
 for m in range(n-1):
 	for t in range(int(s/2)-1):

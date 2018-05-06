@@ -4,61 +4,71 @@
 
 #include "FiniteElementSpaceS.h"
 
-FiniteElementSpaceS& FiniteElementSpaceS::operator=(const FiniteElementSpace &finiteElementSpace)
+template<MeshType meshType>
+FiniteElementSpaceS<meshType>& FiniteElementSpaceS<meshType>::operator=(const FiniteElementSpace<meshType> &finiteElementSpace)
 {
-	T = finiteElementSpace.T;
-	gauss = finiteElementSpace.gauss;
-	finiteElement = finiteElementSpace.finiteElement;
-	thickness = THIN;
-	buildFiniteElementSpace();
-	buildEdge();
+	this->T = finiteElementSpace.T;
+	this->gauss = finiteElementSpace.gauss;
+	this->finiteElement = finiteElementSpace.finiteElement;
+	this->thickness = THIN;
+	this->buildFiniteElementSpace();
+	this->buildEdge();
 	return *this;
 }
 
-void FiniteElementSpaceS::buildEdge()
+template<MeshType meshType>
+void FiniteElementSpaceS<meshType>::buildEdge()
 {
 	if(thickness==THIN)
 	{
 		LOG_INFO("finiteElemenSpaceS: thin.");
-		edge = join(nodes.E,nodes.E+(spaceDim/ambientDim));//TODO 1d? 3d?
-		nBT = edge.size();
-		notEdge = setdiff(linspace(spaceDim),edge);
+		this->edge = join(this->nodes.E,this->nodes.E+(this->spaceDim/this->ambientDim));//TODO 1d? 3d?
+		this->nBT = this->edge.size();
+		this->notEdge = setdiff(linspace(this->spaceDim),this->edge);
 		std::vector<Eigen::Triplet<double>> tE;
-		Eigen::SparseMatrix<double> sE(2,spaceDim);
-		Eigen::Matrix<double,2,Eigen::Dynamic> dE(2,spaceDim);
+		Eigen::SparseMatrix<double> sE(2,this->spaceDim);
+		Eigen::Matrix<double,2,Eigen::Dynamic> dE(2,this->spaceDim);
 
-		for(int i=0;i<edge.size();++i)
+		for(int i=0;i<this->edge.size();++i)
 		{
-			tE.push_back({i,i*(spaceDim/ambientDim),1.0});
-			tE.push_back({i,edge[i],-1.0});
+			tE.push_back({i,i*(this->spaceDim/this->ambientDim),1.0});
+			tE.push_back({i,this->edge[i],-1.0});
 		}
 		std::ostringstream tt;
 		tt << tE;
 		LOG_OK(tt);
 		sE.setFromTriplets(tE.begin(),tE.end());
 		dE = Eigen::Matrix<double,2,Eigen::Dynamic>(sE);
-		E = dE;
+		this->E = dE;
 		std::ostringstream ss;
-		ss << E;
+		ss << this->E;
 		LOG_OK(ss);
 	}
 	else if(thickness==THICK)
 	{
 		LOG_INFO("finiteElemenSpaceS: thick.");
-		nBT = 0;
-		notEdge = linspace(spaceDim);
+		this->nBT = 0;
+		this->notEdge = linspace(this->spaceDim);
 
 		std::vector<Eigen::Triplet<double>> tE;
-		Eigen::SparseMatrix<double> sE(nBT,spaceDim);
-		Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> dE(nBT,spaceDim);
+		Eigen::SparseMatrix<double> sE(this->nBT,this->spaceDim);
+		Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> dE(this->nBT,this->spaceDim);
 
-		for(int i=0;i<nBT;++i)
+		for(int i=0;i<this->nBT;++i)
 		{
-			tE.push_back({i,edge[i],-1.0});
+			tE.push_back({i,this->edge[i],-1.0});
 		}
 		sE.setFromTriplets(tE.begin(),tE.end());
 		dE = Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>(sE);
-		E = dE;
+		this->E = dE;
 	}
 }
+
+//#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS();
+//MESH_TYPE_TABLE
+//#undef X
+
+//#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS(SimplicialMesh<a> t, FiniteElement f, Gauss g);
+//MESH_TYPE_TABLE
+//#undef X
 

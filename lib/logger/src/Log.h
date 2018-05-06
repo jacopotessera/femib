@@ -46,6 +46,15 @@ X(TRACE, "  \033[1;35mTRACE\033[0m", 5) \
 #define LOG_DEBUG(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::DEBUG)
 #define LOG_TRACE(x)	logx::Logger::getInstance()->log(__FILE__,__LINE__,__FUNCTION__,x,logx::TRACE)
 
+#define CONCATENATE_DIRECT(s1, s2) s1##s2
+#define CONCAT(s1, s2) CONCATENATE_DIRECT(s1, s2)
+#define sLOG_OK(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_OK(CONCAT(log,__LINE__));}
+#define sLOG_ERROR(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_ERROR(CONCAT(log,__LINE__));}
+#define sLOG_WARNING(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_WARNING(CONCAT(log,__LINE__));}
+#define sLOG_INFO(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_INFO(CONCAT(log,__LINE__));}
+#define sLOG_DEBUG(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_DEBUG(CONCAT(log,__LINE__));}
+#define sLOG_TRACE(x) {std::ostringstream CONCAT(log,__LINE__); CONCAT(log,__LINE__) << x; LOG_TRACE(CONCAT(log,__LINE__));}
+
 namespace logx
 {
 	#define X(a, b, c) a,

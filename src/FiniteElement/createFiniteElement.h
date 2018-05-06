@@ -857,5 +857,123 @@ FiniteElement createFiniteElementP1_1d2d()
 	return P1_1d2d;
 }
 
+bool in_std_q(const dvec& x)
+{
+	Mesh m0;
+	m0.P = {{0.0,0.0},{1.0,0.0},{1.0,1.0},{0.0,1.0}};
+	m0.T = {{0,1,3},{2,3,1}};
+
+	dmat A = inv(affineB(1,m0));
+	dvec a = affineb(1,m0);
+	return in_std(x) || in_std(A*(x-a));
+}
+
+FiniteElement createFiniteElementQ1_2d1d()
+{
+	F f;
+	FiniteElement Q1_2d1d;
+	Q1_2d1d.finiteElementName = "Q1_2d1d";
+	Q1_2d1d.size = 4;
+	Q1_2d1d.ambientDim = 1;
+	Q1_2d1d.buildNodes = [](const Mesh &mesh)
+	{
+		Nodes nodes;
+		nodes.P = mesh.P;
+		for(int n=0;n<mesh.T.size();++n)
+		{
+			std::vector<int> row;
+			nodes.T.push_back(row);
+			for(int i=0;i<mesh.T[n].size;++i)
+			{
+				nodes.T[n].push_back(mesh.T[n](i));
+			}
+		}
+		nodes.E = mesh.E;
+		return nodes;
+	};
+
+	//inv({
+	//{0,0,0,1},
+	//{1,0,0,1},
+	//{1,1,1,1},
+	//{0, 1,0,1}
+	//})*{0,1,0,0}
+
+	f.x = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dvec({-x(0)-x(1)+x(0)*x(1)+1});
+		else
+			return dvec({0.0});
+	};
+
+	f.dx = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dmat({{-1+x(1),-1+x(0)}});
+		else
+			return dmat({{0,0}});
+	};
+
+	Q1_2d1d.baseFunctions.push_back(f);
+
+	f.x = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dvec({x(0)-x(0)*x(1)});
+		else
+			return dvec({0.0});
+	};
+
+	f.dx = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dmat({{1-x(1),-x(0)}});
+		else
+			return dmat({{0,0}});
+	};
+
+	Q1_2d1d.baseFunctions.push_back(f);
+
+	f.x = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dvec({x(0)*x(1)});
+		else
+			return dvec({0.0});
+	};
+
+	f.dx = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dmat({{x(1),x(0)}});
+		else
+			return dmat({{0,0}});
+	};
+
+	Q1_2d1d.baseFunctions.push_back(f);
+
+
+	f.x = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dvec({x(1)-x(0)*x(1)});
+		else
+			return dvec({0.0});
+	};
+
+	f.dx = [](const dvec &x)
+	{
+		if(in_std_q(x))
+			return dmat({{-x(1),1-x(0)}});
+		else
+			return dmat({{0,0}});
+	};
+
+	Q1_2d1d.baseFunctions.push_back(f);
+
+	return Q1_2d1d;
+}
+
 #endif
 

@@ -26,9 +26,7 @@ Logger::~Logger()
 
 static void handler(int sig)
 {
-	std::ostringstream ss;
-	ss << "Caught signal " << sig;
-	LOG_ERROR(ss);
+	sLOG_ERROR("Caught signal " << sig);
 	exit(1);
 }
 

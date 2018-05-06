@@ -67,5 +67,21 @@ struct ditrian
 	ditrian(const std::initializer_list<int> &list);
 };
 
+namespace std
+{
+	template<>
+	struct hash<dvec>
+	{
+		std::size_t operator()(const dvec &f) const
+		{
+			return
+				std::hash<int>{}(f.size)
+				^ std::hash<double>{}(f.v[0]) << 4
+				^ std::hash<double>{}(f.v[1]) << 8
+				^ std::hash<double>{}(f.v[2]) << 12;
+		}
+	};
+}
+
 #endif
 

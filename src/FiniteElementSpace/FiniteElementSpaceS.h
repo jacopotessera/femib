@@ -12,16 +12,17 @@ enum STRUCTURE_THICKNESS {
 	THICK
 };
 
-class FiniteElementSpaceS : public FiniteElementSpace
+template<MeshType meshType>
+class FiniteElementSpaceS : public FiniteElementSpace<meshType>
 {
 
 	public:
 		STRUCTURE_THICKNESS thickness;
-		FiniteElementSpaceS() : FiniteElementSpace(){};
-		FiniteElementSpaceS(TriangleMesh t, FiniteElement f, Gauss g, STRUCTURE_THICKNESS thickness=THIN) : FiniteElementSpace(t,f,g){
+		FiniteElementSpaceS() : FiniteElementSpace<meshType>(){};
+		FiniteElementSpaceS(TriangleMesh t, FiniteElement f, Gauss g, STRUCTURE_THICKNESS thickness=THIN) : FiniteElementSpace<meshType>(t,f,g){
 			this->thickness = thickness;
 		};
-		FiniteElementSpaceS& operator=(const FiniteElementSpace &finiteElementSpace);
+		FiniteElementSpaceS& operator=(const FiniteElementSpace<meshType> &finiteElementSpace);
 		void buildEdge();
 };
 

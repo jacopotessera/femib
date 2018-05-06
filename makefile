@@ -65,7 +65,8 @@ test/build/testTensorAlgebra: test/TestTensorAlgebra.cu build/dmat.o build/affin
 	@$(CC) -o test/build/testTensorAlgebra $^ $(LIBLOG) $(CFLAGS) $(EIGENFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
 
-test/build/testFiniteElement: test/TestFiniteElement.cu build/dmat.o build/affine.o build/read.o build/Gauss.o build/TriangleMesh.o build/FiniteElementSpace.o build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o build/tensorAlgebra.o build/GaussService.o build/FiniteElement.o build/FiniteElementService.o build/utils.o
+test/build/testFiniteElement: test/TestFiniteElement.cu build/dmat.o build/affine.o build/read.o build/Gauss.o build/TriangleMesh.o build/SimplicialMesh.o build/FiniteElementSpace.o build/tensorAlgebra.o build/GaussService.o build/FiniteElement.o build/FiniteElementService.o build/utils.o
+	#build/FiniteElementSpaceV.o build/FiniteElementSpaceQ.o build/FiniteElementSpaceS.o build/FiniteElementSpaceL.o
 	@echo -n "Compiling $@..."
 	@$(CC) -o test/build/testFiniteElement $^ $(LIBLOG) $(CFLAGS) $(EIGENFLAGS) $(CPPUNITFLAGS)
 	@echo " Done."
@@ -85,30 +86,38 @@ test/build/testSim: test/TestSim.cu build/affine.o build/Gauss.o build/GaussServ
 	@$(CC) -o test/build/testSim $^ build/utils.o $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS) $(EIGENFLAGS) $(MONGOFLAGS)
 	@echo " Done."
 
-test: test/build/testCuda test/build/testDmat test/build/testRead test/build/testAffine test/build/testGauss test/build/testTriangleMesh test/build/testTensorAlgebra test/build/testMongo test/build/testFiniteElement test/build/testUtils test/build/testSim
-	@ulimit -s unlimited	
+test/build/testSimplicialMesh: test/TestSimplicialMesh.cu build/dmat.o build/affine.o build/Gauss.o build/GaussService.o build/TriangleMesh.o build/SimplicialMesh.o
+	@echo -n "Compiling $@..."
+	@$(CC) -o test/build/testSimplicialMesh $^ $(LIBLOG) $(CFLAGS) $(CPPUNITFLAGS)
+	@echo " Done."
+
+test: test/build/testCuda test/build/testAffine test/build/testSimplicialMesh test/build/testFiniteElement
+	# test/build/testDmat test/build/testRead  test/build/testGauss test/build/testTriangleMesh test/build/testTensorAlgebra test/build/testMongo test/build/testUtils test/build/testSim
+	@ulimit -s unlimited
 	@echo "Setting up Cuda..."
 	@./test/build/testCuda
-	@echo "Test dmat..."
-	@./test/build/testDmat	
-	@echo "Test read..."
-	@./test/build/testRead
-	@echo "Test Affine..."
-	@./test/build/testAffine
-	@echo "Test Gauss..."
-	@./test/build/testGauss
-	@echo "Test TriangleMesh..."
-	@./test/build/testTriangleMesh
-	@echo "Test tensorAlgebra..."
-	@./test/build/testTensorAlgebra
-	@echo "Test mongo..."
-	@./test/build/testMongo
-	@echo "Test utils..."
-	@./test/build/testUtils
-	@echo "Test FiniteElement..."
+	#@echo "Testing dmat..."
+	#@./test/build/testDmat
+	#@echo "Testing read..."
+	#@./test/build/testRead
+	#@echo "Testing Affine..."
+	#@./test/build/testAffine
+	#@echo "Testing Gauss..."
+	#@./test/build/testGauss
+	#@echo "Testing TriangleMesh..."
+	#@./test/build/testTriangleMesh
+	#@echo "Testing tensorAlgebra..."
+	#@./test/build/testTensorAlgebra
+	#@echo "Testing mongo..."
+	#@./test/build/testMongo
+	#@echo "Testing utils..."
+	#@./test/build/testUtils
+	@echo "Testing SimplicialMesh..."
+	@./test/build/testSimplicialMesh
+	@echo "Testing FiniteElement..."
 	@./test/build/testFiniteElement
-	@echo "Test Simulation..."
-	@./test/build/testSim
+	#@echo "Testing Simulation..."
+	#@./test/build/testSim
 
 profile:
 	@echo "Profiling..."

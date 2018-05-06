@@ -12,6 +12,7 @@ std::vector<T> read(std::string fileName)
 	std::string line;
 	std::ifstream file (fileName);
 
+	sLOG_DEBUG("Reading file " << fileName << " ...");
 	if(file.is_open())
 	{
 		for(int i=0;std::getline (file,line);++i)
@@ -20,6 +21,7 @@ std::vector<T> read(std::string fileName)
 			a.push_back(t);
 			size_t pos = 0;
 			std::string token;
+			LOG_DEBUG(line);
 			for(int j=0;(pos = line.find(tab)) != std::string::npos;++j)
 			{
 				token = line.substr(0, pos);

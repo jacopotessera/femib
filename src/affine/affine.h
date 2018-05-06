@@ -6,6 +6,7 @@
 #define AFFINE_H_INCLUDED_
 
 #include "../dmat/dmat.h"
+#include "../dmat/dmat_impl.h"
 #include "../utils/Mesh.h"
 #include "../../lib/Log.h"
 

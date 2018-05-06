@@ -26,6 +26,7 @@ std::ostream& operator<<(std::ostream& out, const ditrian &t);
 
 __host__ __device__ double _abs(double x);
 __host__ __device__ bool operator==(const dvec &lhs, const dvec &rhs);
+__host__ __device__ bool operator!=(const dvec &lhs, const dvec &rhs);
 __host__ __device__ bool operator<(const dvec &lhs, const dvec &rhs);
 __host__ __device__ bool operator==(const divec &lhs, const divec &rhs);
 __host__ __device__ bool operator==(const dmat &lhs, const dmat &rhs);

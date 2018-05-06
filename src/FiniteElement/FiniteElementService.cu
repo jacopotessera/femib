@@ -41,6 +41,7 @@ void FiniteElementService::createFiniteElementList()
 	finiteElementList["P2_2d2d"] = createFiniteElementP2_2d2d();
 	finiteElementList["P1_1d1d"] = createFiniteElementP1_1d1d();
 	finiteElementList["P1_1d2d"] = createFiniteElementP1_1d2d();
+	finiteElementList["Q1_2d1d"] = createFiniteElementQ1_2d1d();
 }
 
 void FiniteElementService::createCustomFiniteElementList(){}

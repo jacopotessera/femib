@@ -266,6 +266,11 @@ __host__ __device__ bool operator==(const dvec &lhs, const dvec &rhs)
 	return e;
 }
 
+__host__ __device__ bool operator!=(const dvec &lhs, const dvec &rhs)
+{
+	return !(lhs == rhs);
+}
+
 /*__host__ size_t Hash()
 {
 	size_t h = std::hash<int>(size);
@@ -374,6 +379,9 @@ __host__ __device__ dvec& dvec::operator+=(const dvec &a)
 			v[i] += a(i);
 		}
 	}
+	#ifndef __CUDA_ARCH__
+	else throw EXCEPTION("dvec +: Incompatible size!");
+	#endif
 	return *this;
 }
 

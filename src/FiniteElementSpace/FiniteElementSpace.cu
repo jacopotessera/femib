@@ -4,10 +4,14 @@
 
 #include "FiniteElementSpace.h"
 
-FiniteElementSpace::FiniteElementSpace(){}
-FiniteElementSpace::~FiniteElementSpace(){}
+template<MeshType meshType>
+FiniteElementSpace<meshType>::FiniteElementSpace(){}
 
-FiniteElementSpace::FiniteElementSpace(TriangleMesh t, FiniteElement f, Gauss g)
+template<MeshType meshType>
+FiniteElementSpace<meshType>::~FiniteElementSpace(){}
+
+template<MeshType meshType>
+FiniteElementSpace<meshType>::FiniteElementSpace(SimplicialMesh<meshType> t, FiniteElement f, Gauss g)
 {
 	T = t;
 	finiteElement = f;
@@ -15,26 +19,35 @@ FiniteElementSpace::FiniteElementSpace(TriangleMesh t, FiniteElement f, Gauss g)
 	buildFiniteElementSpace();
 }
 
-void FiniteElementSpace::buildEdge(){}
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::buildEdge(){}
 
-BaseFunction FiniteElementSpace::getBaseFunction(int i, int n)
+template<MeshType meshType>
+BaseFunction FiniteElementSpace<meshType>::getBaseFunction(int i, int n)
 {
 	BaseFunction b;
 	b.x = [i,n,this](const dvec &x){
-		for(int m : T.q2t(n))
+		for(int m : T.q2t[n])
 		{
-			if(serial_accurate(x,T.mt.T[m]))
-				return baseFunction[i].x(T.Binv[m]*(x-T.b[m]));
+			if(serial_accurate(x,T.triangularMesh.T[m]))
+				return baseFunction[i].x(T.triangularMesh.Binv[m]*(x-T.triangularMesh.b[m])); //TODO tornare su elemento di base
 		}
 	};
-	b.dx = [i,n,this](const dvec &x){return baseFunction[i].dx(T.Binv[n]*(x-T.b[n]))*T.Binv[n];};
+	b.dx = [i,n,this](const dvec &x){
+		for(int m : T.q2t[n])
+		{
+			if(serial_accurate(x,T.mt.T[m]))
+				return baseFunction[i].dx(T.triangularMesh.Binv[m]*(x-T.triangularMesh.b[m]))*T.triangularMesh.Binv[m];
+		}
+	};
 	b.f = {b.x,b.dx};
 	b.i = getIndex(i, n);
 	b.mini_i = getMiniIndex(i, n);
 	return b;
 }
 
-int FiniteElementSpace::getIndex(int i, int n)
+template<MeshType meshType>
+int FiniteElementSpace<meshType>::getIndex(int i, int n)
 {
 	int ii=i%(elementDim/ambientDim);
 	int D=0;
@@ -47,7 +60,8 @@ int FiniteElementSpace::getIndex(int i, int n)
 	return nodes.T[n][ii]+D;
 }
 
-int FiniteElementSpace::getMiniIndex(int i, int n)
+template<MeshType meshType>
+int FiniteElementSpace<meshType>::getMiniIndex(int i, int n)
 {
 	int ii=i%(elementDim/ambientDim);
 	int D=0;
@@ -60,7 +74,8 @@ int FiniteElementSpace::getMiniIndex(int i, int n)
 	return find(notEdge,nodes.T[n][ii]+D);
 }
 
-void FiniteElementSpace::buildFiniteElementSpace()
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::buildFiniteElementSpace()
 {
 	nodes = finiteElement.buildNodes(T.mesh);
 	baseFunction = finiteElement.baseFunctions;
@@ -90,21 +105,24 @@ void FiniteElementSpace::buildFiniteElementSpace()
 	this->setSpaceDim();
 }
 
-void FiniteElementSpace::setElementDim()
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::setElementDim()
 {
 	this->elementDim = this->baseFunction.size();
 }
 
-void FiniteElementSpace::setSpaceDim()
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::setSpaceDim()
 {
 	this->ambientDim = finiteElement.ambientDim;
 	this->theOtherDim = this->nodes.P[0].size;
 	this->spaceDim = this->nodes.P.size()*ambientDim;
 }
 
-F FiniteElementSpace::operator()(const std::vector<double> &v)
+template<MeshType meshType>
+F FiniteElementSpace<meshType>::operator()(const std::vector<double> &v)
 {
-	LOG_WARNING("FiniteElementSpace::operator() not yet implemented!");
+	LOG_WARNING("FiniteElementSpace<meshType>::operator() not yet implemented!");
 	std::function<dvec(dvec)> a = [&](const dvec &x)
 	{
 		return dvec({});
@@ -117,14 +135,16 @@ F FiniteElementSpace::operator()(const std::vector<double> &v)
 	return Fa;
 }
 
-F FiniteElementSpace::operator()(const std::vector<double> &v, int n)
+template<MeshType meshType>
+F FiniteElementSpace<meshType>::operator()(const std::vector<double> &v, int n)
 {
 	std::function<dvec(dvec)>  a = [&v,this,n](const dvec &x)
 	{
 		dvec y; y.size = ambientDim;
 		for(int i=0;i<baseFunction.size();++i)
 		{
-			y += v[getIndex(i,n)]*baseFunction[i].x(T.Binv[n]*(x-T.b[n]));
+			if(T.xInN(x,n))
+				y += v[getIndex(i,n)]*baseFunction[i].x( T.toMesh0x(x,n) );
 		}
 		return y;
 	};
@@ -133,7 +153,8 @@ F FiniteElementSpace::operator()(const std::vector<double> &v, int n)
 		dmat y; y.rows = ambientDim; y.cols = theOtherDim;
 		for(int i=0;i<baseFunction.size();++i)
 		{
-			y = y + v[getIndex(i,n)]*baseFunction[i].dx(T.Binv[n]*(x-T.b[n]))*T.Binv[n];
+			if(T.xInN(x,n))
+				y = y + v[getIndex(i,n)]*baseFunction[i].dx( T.toMesh0x(x,n) )*T.toMesh0dx(x,n);
 		}
 		return y;
 	};
@@ -141,39 +162,56 @@ F FiniteElementSpace::operator()(const std::vector<double> &v, int n)
 	return Fa;
 }
 
-void FiniteElementSpace::calc(const std::vector<double> &v)
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::calc(const std::vector<double> &v)
 {
 	preCalc.clear();
 	for(int n=0;n<nodes.T.size();++n)
 	{
-		std::map<dvec,xDx> temp;
+		std::unordered_map<dvec,xDx> temp;
 		preCalc.push_back(temp);
-		for(int k=0;k<gauss.n;k++)
+		for(int mm=0;mm<T.q2t[n].size();++mm)
 		{
-			dvec y; y.size = ambientDim;
-			dmat z; z.rows = ambientDim; z.cols = theOtherDim;
-	
-			for(int i=0;i<baseFunction.size();++i)
+			int m = T.q2t[n][mm];
+			for(int k=0;k<gauss.n;k++)
 			{
-				y += v[getIndex(i,n)]*baseFunction[i].x(gauss.nodes[k]);
-				z = z + v[getIndex(i,n)]*baseFunction[i].dx(gauss.nodes[k])*T.Binv[n];
+				dvec y; y.size = ambientDim;
+				dmat z; z.rows = ambientDim; z.cols = theOtherDim;
+
+				for(int i=0;i<baseFunction.size();++i)
+				{
+					y += v[getIndex(i,n)]*baseFunction[i].x( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) );
+					z = z + v[getIndex(i,n)]*baseFunction[i].dx( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) )* affineB(mm,T.mesh0);
+				}
+				dvec x = T.triangleMesh.B[m]* ( gauss.nodes[k] ) +T.triangleMesh.b[m];
+				xDx w = {y,z};
+				sLOG_OK("n: "  << n);
+				sLOG_OK("x: "  << x);
+				sLOG_OK("y: "  << w.x);
+				preCalc[n][x] = w;
+				sLOG_OK("y? " << preCalc[n].find(x)->second.x);
 			}
-			dvec x = T.B[n]*gauss.nodes[k]+T.b[n];
-			xDx w = {y,z};
-			preCalc[n][x] = w;
 		}
 	}
+	sLOG_OK("calc ended.");
 }
 
-F FiniteElementSpace::getPreCalc(int n)
+template<MeshType meshType>
+F FiniteElementSpace<meshType>::getPreCalc(int n)
 {
+	sLOG_OK("getPreCalc begin ...");
 	std::function<dvec(dvec)>  a = [&](const dvec &x)
 	{
-		std::map<dvec, xDx>::iterator i = preCalc[n].find(x);
+		std::unordered_map<dvec, xDx>::iterator i = preCalc[n].find(x);
 
 		if(i!=preCalc[n].end())
 		{
-			return preCalc[n][x].x;
+			sLOG_DEBUG("n: " << n);
+			sLOG_DEBUG("x: " << x);
+			sLOG_DEBUG("x: " << i->first);
+			sLOG_DEBUG("preCalc(n).x(x) = ");
+			sLOG_DEBUG("y: " << i->second.x);
+			return i->second.x;
 		}
 		else
 		{
@@ -184,10 +222,15 @@ F FiniteElementSpace::getPreCalc(int n)
 
 	std::function<dmat(dvec)>  Da = [&](const dvec &x)
 	{
-		std::map<dvec, xDx>::iterator i = preCalc[n].find(x);
+		std::unordered_map<dvec, xDx>::iterator i = preCalc[n].find(x);
 		if(i!=preCalc[n].end())
 		{
-			return preCalc[n][x].dx;
+			sLOG_DEBUG("n: " << n);
+			sLOG_DEBUG("x: " << x);
+			sLOG_DEBUG("x: " << i->first);
+			sLOG_DEBUG("preCalc(n).dx(x) = ");
+			sLOG_DEBUG("dy: " << i->second.dx);
+			return i->second.dx;
 		}
 		else
 		{
@@ -198,7 +241,8 @@ F FiniteElementSpace::getPreCalc(int n)
 	return {a,Da};
 }
 
-std::vector<std::vector<int>> FiniteElementSpace::collisionDetection(const std::vector<std::vector<dvec>> &X)
+template<MeshType meshType>
+std::vector<std::vector<int>> FiniteElementSpace<meshType>::collisionDetection(const std::vector<std::vector<dvec>> &X)
 {
 	std::vector<std::vector<int>> MM;
 	int size = X.size()*X[0].size();
@@ -296,7 +340,8 @@ std::vector<std::vector<int>> FiniteElementSpace::collisionDetection(const std::
 	return MM;
 }
 
-std::vector<int> FiniteElementSpace::collisionDetection(const std::vector<dvec> &X)
+template<MeshType meshType>
+std::vector<int> FiniteElementSpace<meshType>::collisionDetection(const std::vector<dvec> &X)
 {
 	std::vector<int> MM;
 	int size = X.size();
@@ -374,7 +419,8 @@ std::vector<int> FiniteElementSpace::collisionDetection(const std::vector<dvec> 
 	return MM;
 }
 
-std::vector<dvec> FiniteElementSpace::getValuesInMeshNodes(const std::vector<double> &a)
+template<MeshType meshType>
+std::vector<dvec> FiniteElementSpace<meshType>::getValuesInMeshNodes(const std::vector<double> &a)
 {
 	std::vector<dvec> x;
 	x.reserve(nodes.P.size());
@@ -390,32 +436,40 @@ std::vector<dvec> FiniteElementSpace::getValuesInMeshNodes(const std::vector<dou
 
 }
 
-std::vector<std::vector<dvec>> FiniteElementSpace::getValuesInGaussNodes(const std::vector<double> &a)
+template<MeshType meshType>
+std::vector<std::vector<dvec>> FiniteElementSpace<meshType>::getValuesInGaussNodes(const std::vector<double> &a)
 {
 	std::vector<std::vector<dvec>> x;
 	for(int n=0;n<T.mesh.T.size();++n)
 	{
-		std::vector<dvec> xx;
-		x.push_back(xx);
-		for(int k=0;k<T.gauss.n;++k)
+		for(int mm=0;mm<T.q2t.size();++mm)
 		{
-			x[n].push_back((*this)(a,n).x(T.B[n]*T.gauss.nodes[k]+T.b[n]));
+			int m = T.q2t[mm];
+			std::vector<dvec> xx;
+			x.push_back(xx);
+			for(int k=0;k<T.gauss.n;++k)
+			{
+				x[n].push_back((*this)(a,n).x(T.B[m]*T.gauss.nodes[k]+T.b[m]));
+			}
 		}
 	}
 	return x;
 }
 
-Eigen::SparseMatrix<double> FiniteElementSpace::gC(const Eigen::SparseMatrix<double>& S)
+template<MeshType meshType>
+Eigen::SparseMatrix<double> FiniteElementSpace<meshType>::gC(const Eigen::SparseMatrix<double>& S)
 {
 	return getColumns(S,edge);
 }
 
-Eigen::SparseMatrix<double> FiniteElementSpace::gR(const Eigen::SparseMatrix<double>& S)
+template<MeshType meshType>
+Eigen::SparseMatrix<double> FiniteElementSpace<meshType>::gR(const Eigen::SparseMatrix<double>& S)
 {
 	return getRows(S,edge);
 }
 
-miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace)
+template<MeshType meshType>
+miniFE finiteElementSpace2miniFE(const FiniteElementSpace<meshType> &finiteElementSpace)
 {
 	miniFE m;
 	m.finiteElement = finiteElementSpace.finiteElement.finiteElementName;
@@ -426,18 +480,20 @@ miniFE finiteElementSpace2miniFE(const FiniteElementSpace &finiteElementSpace)
 	return m;
 }
 
-FiniteElementSpace miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService)
+template<MeshType meshType>
+FiniteElementSpace<meshType> miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService)
 {
-	FiniteElementSpace finiteElementSpace;
+	FiniteElementSpace<meshType> finiteElementSpace;
 	TriangleMesh triangleMesh = TriangleMesh(mini.mesh,gaussService.getGauss(mini.gauss));
 	triangleMesh.loadOnGPU();
-	finiteElementSpace = FiniteElementSpace(triangleMesh,finiteElementService.getFiniteElement(mini.finiteElement),gaussService.getGauss(mini.gauss));
+	finiteElementSpace = FiniteElementSpace<meshType>(triangleMesh,finiteElementService.getFiniteElement(mini.finiteElement),gaussService.getGauss(mini.gauss));
 	finiteElementSpace.buildFiniteElementSpace();
 	finiteElementSpace.buildEdge();
 	return finiteElementSpace;
 }
 
-Eigen::SparseMatrix<double> FiniteElementSpace::applyEdgeCondition(const Eigen::SparseMatrix<double>& S)
+template<MeshType meshType>
+Eigen::SparseMatrix<double> FiniteElementSpace<meshType>::applyEdgeCondition(const Eigen::SparseMatrix<double>& S)
 {
 	if(edge.size()>0)
 		return S + gC(S)*E;
@@ -445,10 +501,39 @@ Eigen::SparseMatrix<double> FiniteElementSpace::applyEdgeCondition(const Eigen::
 		return S;
 }
 
-Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace &E, const FiniteElementSpace &F)
+template<MeshType meshType>
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshType> &E, const FiniteElementSpace<meshType> &F)
 {
 	return getRows(getColumns(S,E.notEdge),F.notEdge);
 	//C*A*Eigen::SparseMatrix<double>(C.transpose())
 	//C*a
 }
+
+#define X(a) template FiniteElementSpace<a>::FiniteElementSpace();
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template FiniteElementSpace<a>::~FiniteElementSpace();
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template FiniteElementSpace<a>::FiniteElementSpace(SimplicialMesh<a> t, FiniteElement f, Gauss g);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template F FiniteElementSpace<a>::operator()(const std::vector<double> &v, int n);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template void FiniteElementSpace<a>::buildFiniteElementSpace();
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template void FiniteElementSpace<a>::calc(const std::vector<double> &v);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template F FiniteElementSpace<a>::getPreCalc(int n);
+MESH_TYPE_TABLE
+#undef X
 

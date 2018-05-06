@@ -84,7 +84,6 @@ class PlotSimulation():
 		fig.set_tight_layout(True)
 		#print('fig size: {0} DPI, size in inches {1}'.format(fig.get_dpi(), fig.get_size_inches()))
 
-
 		#grid_x = self.plotData["W"][0]["x"]
 		#grid_y = self.plotData["W"][0]["y"]
 

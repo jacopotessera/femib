@@ -2,25 +2,37 @@
 
 * sistemare makefile, corregere dipendenze
 * scrivere qualcosa nel README
-* aggiungere log
+* aggiungere LICENSE
 
 ## build/
 
 * ok
 
+## gifs/
+
+* ok
+
+## gitignore/
+
+* ok
+
 ## lib/
+
+### logger/
+
+* stringstream log macro
+
+## log/
 
 * ok
 
 ## mesh/
 
-* migliorare plotMesh.py (percorso file, 1D, 3D)
-* migliorare genMesh.py
+* rimuovere depivot.py
 
 ## plot/
 
-* migliorare plot.py
-* salvare gif (?)
+* ?
 
 ## src/
 
@@ -28,6 +40,10 @@
 
 * check sulle dimensioni
 * mesh valida?
+
+### cuda/
+
+* implementare Cuda come singleton
 
 ### dmat/
 
@@ -38,6 +54,7 @@
 ### FiniteElement/
 
 * sistemare buildFunctions
+* implementare FiniteElementService come singleton
 
 ### read/
 
