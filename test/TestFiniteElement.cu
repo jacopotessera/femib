@@ -95,8 +95,6 @@ void TestFiniteElement::setUp(void)
 	);*/
 
 	finElem.calc(q);
-
-
 	sLOG_OK(finElem(q,0).x({0.25,1.0/6.0}) );
 	sLOG_OK(finElem.getPreCalc(0).x({0.25,1.0/6.0}));
 }

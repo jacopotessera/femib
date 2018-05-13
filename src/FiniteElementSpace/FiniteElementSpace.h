@@ -92,8 +92,8 @@ miniFE finiteElementSpace2miniFE(const FiniteElementSpace<meshType> &finiteEleme
 template<MeshType meshType>
 FiniteElementSpace<meshType> miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
 
-template<MeshType meshType>
-Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshType> &E, const FiniteElementSpace<meshType> &F);
+template<MeshType meshTypeA, MeshType meshTypeB>
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshTypeA> &E, const FiniteElementSpace<meshTypeB> &F);
 
 #endif
 

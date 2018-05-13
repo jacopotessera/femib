@@ -8,7 +8,7 @@
 Simulation::Simulation(){}
 
 Simulation::Simulation(std::string id,dbconfig db,Parameters parameters,
-	FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
+	FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,FiniteElementSpaceS_ S,FiniteElementSpaceL_ L,
 	timestep t0,timestep t1,bool full)
 {
 	this->id = id;
@@ -96,10 +96,10 @@ void Simulation::getSimulation(dbconfig db,std::string id)
 	this->parameters = mini.parameters;
 	this->full = mini.full;
 
-	V = miniFE2FiniteElementSpace(mini.V,gaussService,finiteElementService);
-	Q = miniFE2FiniteElementSpace(mini.Q,gaussService,finiteElementService);
-	S = miniFE2FiniteElementSpace(mini.S,gaussService,finiteElementService);
-	L = miniFE2FiniteElementSpace(mini.L,gaussService,finiteElementService);
+	V = miniFE2FiniteElementSpace<Triangular>(mini.V,gaussService,finiteElementService);
+	Q = miniFE2FiniteElementSpace<Triangular>(mini.Q,gaussService,finiteElementService);
+	S = miniFE2FiniteElementSpace<Triangular>(mini.S,gaussService,finiteElementService);
+	L = miniFE2FiniteElementSpace<Triangular>(mini.L,gaussService,finiteElementService);
 
 	int time = get_time(db,id);
 	for(int i=0;i<time;++i)
@@ -134,7 +134,7 @@ plotData Simulation::timestep2plotData(timestep t)
 	p.id = t.id;
 	p.time = t.time;
 
-	std::vector<std::vector<double>> box = V.T.getBox();
+	std::vector<std::vector<double>> box = V.T.triangleMesh.getBox();
 	double step = 0.1;
 
 	std::vector<dvec> G;
@@ -142,7 +142,7 @@ plotData Simulation::timestep2plotData(timestep t)
 	{
 		G.push_back({x});
 	}
-	for(int d=1;d<V.T.dim;++d)
+	for(int d=1;d<V.T.triangleMesh.dim;++d)
 	{
 		std::vector<dvec> slice = G;
 		G.clear();
@@ -163,6 +163,11 @@ plotData Simulation::timestep2plotData(timestep t)
 
 	for(int i=0;i<G.size();++i)
 	{
+//sLOG_OK("i: " << i);
+//sLOG_OK("G[i]: " << G[i]);
+//sLOG_OK("M[i]: " << M[i]);
+//sLOG_OK(ditrian2dtrian(V.T.mesh.T[M[i]],V.T.mesh.P.data()));
+//assert(accurate(G[i],ditrian2dtrian(V.T.mesh.T[M[i]],V.T.mesh.P.data())));
 		assert(M[i]!=-1);
 		dvec vv = V(timesteps[p.time].u,M[i]).x(G[i]);
 		dvec qq = Q(timesteps[p.time].q,M[i]).x(G[i]);
@@ -408,6 +413,8 @@ void Simulation::buildMultiplierMatrices()
 
 void Simulation::buildK2f()
 {
+logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_DEBUG);
+logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_INFO);
 	int time = timesteps.size();
 	for(int n=0;n<V.nodes.T.size();++n)
 	{
@@ -419,7 +426,9 @@ void Simulation::buildK2f()
 			{
 				BaseFunction b = V.getBaseFunction(j,n);
 				std::function<double(dvec)> g = ddot(dotdiv(v.x,a.dx),a.x)-ddot(dotdiv(v.x,b.dx),b.x);
+//sLOG_OK("n: " << n << "/" << V.nodes.T.size() << std::endl << "i: " << i << "/" << V.elementDim << std::endl << "j: " << j << "/" << V.elementDim);
 				double valK2f = V.T.integrate(g,n);
+//sLOG_OK("valK2f: " << valK2f);
 				if(valK2f!=0)
 				{
 					if(a.mini_i!=-1 && b.mini_i!=-1)
@@ -497,7 +506,7 @@ void Simulation::buildF()
 {
 	int time = timesteps.size();
   	FF = evec::Zero(V.spaceDim);
-
+logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_DEBUG);
 	std::vector<std::vector<dvec>> yyy = S.getValuesInGaussNodes(timesteps[time-1].x);
 	MM = V.collisionDetection(yyy);
 

@@ -664,16 +664,16 @@ __host__  __device__ bool in_box(const dvec &P, const dtrian &T)
 	return e;	
 }
 
-__host__ __device__ bool in_std(const dvec &P)
+__host__ __device__ bool in_std(const dvec &P) //TODO
 {
 	bool e = true;
 	double q = 0;
 	for(int i=0;e && i<P.size;++i)
 	{
-		e = e && P(i)>=0;
+		e = e && P(i)>=-M_EPS*1000;
 		q += P(i);
 	}
-	return e && q<=1;
+	return e && q<=1+M_EPS*1000;
 }
 
 __host__ __device__ bool in_triangle(const dvec &P, const dtrian &T)

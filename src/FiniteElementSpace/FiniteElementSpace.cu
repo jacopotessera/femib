@@ -27,17 +27,27 @@ BaseFunction FiniteElementSpace<meshType>::getBaseFunction(int i, int n)
 {
 	BaseFunction b;
 	b.x = [i,n,this](const dvec &x){
-		for(int m : T.q2t[n])
+		//sLOG_DEBUG("x: " << x);
+		if(T.xInN(x,n))
 		{
-			if(serial_accurate(x,T.triangularMesh.T[m]))
-				return baseFunction[i].x(T.triangularMesh.Binv[m]*(x-T.triangularMesh.b[m])); //TODO tornare su elemento di base
+			dvec y = T.toMesh0x(x,n);
+			//sLOG_DEBUG("y: " << y);
+			return baseFunction[i].x(y);
+		}
+		else
+		{
+			dvec zero; zero.size = ambientDim;
+			//sLOG_DEBUG("x not in n!");
+			return zero;
 		}
 	};
 	b.dx = [i,n,this](const dvec &x){
-		for(int m : T.q2t[n])
+		if(T.xInN(x,n))
+			return baseFunction[i].dx( T.toMesh0x(x,n) )* T.toMesh0dx(x,n);
+		else
 		{
-			if(serial_accurate(x,T.mt.T[m]))
-				return baseFunction[i].dx(T.triangularMesh.Binv[m]*(x-T.triangularMesh.b[m]))*T.triangularMesh.Binv[m];
+			dmat zero; zero.rows = ambientDim; zero.cols = theOtherDim;
+			return zero;
 		}
 	};
 	b.f = {b.x,b.dx};
@@ -144,7 +154,12 @@ F FiniteElementSpace<meshType>::operator()(const std::vector<double> &v, int n)
 		for(int i=0;i<baseFunction.size();++i)
 		{
 			if(T.xInN(x,n))
-				y += v[getIndex(i,n)]*baseFunction[i].x( T.toMesh0x(x,n) );
+			{
+				sLOG_DEBUG("x: " << x);
+				dvec q = T.toMesh0x(x,n);
+				sLOG_DEBUG("q: " << q);
+				y += v[getIndex(i,n)]*baseFunction[i].x(q);
+			}
 		}
 		return y;
 	};
@@ -183,34 +198,28 @@ void FiniteElementSpace<meshType>::calc(const std::vector<double> &v)
 					y += v[getIndex(i,n)]*baseFunction[i].x( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) );
 					z = z + v[getIndex(i,n)]*baseFunction[i].dx( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) )* affineB(mm,T.mesh0);
 				}
-				dvec x = T.triangleMesh.B[m]* ( gauss.nodes[k] ) +T.triangleMesh.b[m];
+				dvec x = T.triangleMesh.B[m]* ( gauss.nodes[k] ) + T.triangleMesh.b[m];
 				xDx w = {y,z};
-				sLOG_OK("n: "  << n);
-				sLOG_OK("x: "  << x);
-				sLOG_OK("y: "  << w.x);
 				preCalc[n][x] = w;
-				sLOG_OK("y? " << preCalc[n].find(x)->second.x);
 			}
 		}
 	}
-	sLOG_OK("calc ended.");
 }
 
 template<MeshType meshType>
 F FiniteElementSpace<meshType>::getPreCalc(int n)
 {
-	sLOG_OK("getPreCalc begin ...");
-	std::function<dvec(dvec)>  a = [&](const dvec &x)
+	std::function<dvec(dvec)>  a = [&,n](const dvec &x)
 	{
 		std::unordered_map<dvec, xDx>::iterator i = preCalc[n].find(x);
 
 		if(i!=preCalc[n].end())
 		{
-			sLOG_DEBUG("n: " << n);
-			sLOG_DEBUG("x: " << x);
-			sLOG_DEBUG("x: " << i->first);
-			sLOG_DEBUG("preCalc(n).x(x) = ");
-			sLOG_DEBUG("y: " << i->second.x);
+			//sLOG_DEBUG("n: " << n);
+			//sLOG_DEBUG("x: " << x);
+			//sLOG_DEBUG("x: " << i->first);
+			//sLOG_DEBUG("preCalc(n).x(x) = ");
+			//sLOG_DEBUG("y: " << i->second.x);
 			return i->second.x;
 		}
 		else
@@ -220,16 +229,16 @@ F FiniteElementSpace<meshType>::getPreCalc(int n)
 		}
 	};
 
-	std::function<dmat(dvec)>  Da = [&](const dvec &x)
+	std::function<dmat(dvec)>  Da = [&,n](const dvec &x)
 	{
 		std::unordered_map<dvec, xDx>::iterator i = preCalc[n].find(x);
 		if(i!=preCalc[n].end())
 		{
-			sLOG_DEBUG("n: " << n);
-			sLOG_DEBUG("x: " << x);
-			sLOG_DEBUG("x: " << i->first);
-			sLOG_DEBUG("preCalc(n).dx(x) = ");
-			sLOG_DEBUG("dy: " << i->second.dx);
+			//sLOG_DEBUG("n: " << n);
+			//sLOG_DEBUG("x: " << x);
+			//sLOG_DEBUG("x: " << i->first);
+			//sLOG_DEBUG("preCalc(n).dx(x) = ");
+			//sLOG_DEBUG("dy: " << i->second.dx);
 			return i->second.dx;
 		}
 		else
@@ -278,12 +287,12 @@ std::vector<std::vector<int>> FiniteElementSpace<meshType>::collisionDetection(c
 
 	for(int i=0;i<q;++i)
 	{
-		parallel_accurate<<<size,MAX_BLOCKS>>>(T.devP,T.devT[i],devX,devN[i]);
+		parallel_accurate<<<size,MAX_BLOCKS>>>(T.triangleMesh.devP,T.triangleMesh.devT[i],devX,devN[i]);
 		HANDLE_ERROR(cudaMemcpy(N[i],devN[i],size*MAX_BLOCKS*sizeof(bool),cudaMemcpyDeviceToHost));
 	}
 	if(mod>0)
 	{
-		parallel_accurate<<<size,mod>>>(T.devP,T.devTq,devX,devNq);
+		parallel_accurate<<<size,mod>>>(T.triangleMesh.devP,T.triangleMesh.devTq,devX,devNq);
 		HANDLE_ERROR(cudaMemcpy(Nq,devNq,size*mod*sizeof(bool),cudaMemcpyDeviceToHost));
 	}
 
@@ -370,12 +379,12 @@ std::vector<int> FiniteElementSpace<meshType>::collisionDetection(const std::vec
 
 	for(int i=0;i<q;++i)
 	{
-		parallel_accurate<<<size,MAX_BLOCKS>>>(T.devP,T.devT[i],devX,devN[i]);
+		parallel_accurate<<<size,MAX_BLOCKS>>>(T.triangleMesh.devP,T.triangleMesh.devT[i],devX,devN[i]);
 		HANDLE_ERROR(cudaMemcpy(N[i],devN[i],size*MAX_BLOCKS*sizeof(bool),cudaMemcpyDeviceToHost));
 	}
 	if(mod>0)
 	{
-		parallel_accurate<<<size,mod>>>(T.devP,T.devTq,devX,devNq);
+		parallel_accurate<<<size,mod>>>(T.triangleMesh.devP,T.triangleMesh.devTq,devX,devNq);
 		HANDLE_ERROR(cudaMemcpy(Nq,devNq,size*mod*sizeof(bool),cudaMemcpyDeviceToHost));
 	}
 
@@ -442,14 +451,19 @@ std::vector<std::vector<dvec>> FiniteElementSpace<meshType>::getValuesInGaussNod
 	std::vector<std::vector<dvec>> x;
 	for(int n=0;n<T.mesh.T.size();++n)
 	{
-		for(int mm=0;mm<T.q2t.size();++mm)
+		for(int mm=0;mm<T.q2t[n].size();++mm)
 		{
-			int m = T.q2t[mm];
+			int m = T.q2t[n][mm];
 			std::vector<dvec> xx;
 			x.push_back(xx);
 			for(int k=0;k<T.gauss.n;++k)
 			{
-				x[n].push_back((*this)(a,n).x(T.B[m]*T.gauss.nodes[k]+T.b[m]));
+//sLOG_OK("n: " << n );
+//sLOG_OK("mm: " << mm );
+//sLOG_OK("m: " << m );
+//sLOG_OK(T.triangleMesh.B[m] << T.gauss.nodes[k]);
+//sLOG_OK(T.triangleMesh.B[m]*T.gauss.nodes[k]+T.triangleMesh.b[m]);
+				x[n].push_back((*this)(a,n).x(T.triangleMesh.B[m]*T.gauss.nodes[k]+T.triangleMesh.b[m]));
 			}
 		}
 	}
@@ -484,8 +498,8 @@ template<MeshType meshType>
 FiniteElementSpace<meshType> miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService)
 {
 	FiniteElementSpace<meshType> finiteElementSpace;
-	TriangleMesh triangleMesh = TriangleMesh(mini.mesh,gaussService.getGauss(mini.gauss));
-	triangleMesh.loadOnGPU();
+	SimplicialMesh<meshType> triangleMesh = SimplicialMesh<meshType>(mini.mesh,gaussService.getGauss(mini.gauss));
+	triangleMesh.triangleMesh.loadOnGPU();
 	finiteElementSpace = FiniteElementSpace<meshType>(triangleMesh,finiteElementService.getFiniteElement(mini.finiteElement),gaussService.getGauss(mini.gauss));
 	finiteElementSpace.buildFiniteElementSpace();
 	finiteElementSpace.buildEdge();
@@ -501,8 +515,8 @@ Eigen::SparseMatrix<double> FiniteElementSpace<meshType>::applyEdgeCondition(con
 		return S;
 }
 
-template<MeshType meshType>
-Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshType> &E, const FiniteElementSpace<meshType> &F)
+template<MeshType meshTypeA, MeshType meshTypeB>
+Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<meshTypeA> &E, const FiniteElementSpace<meshTypeB> &F)
 {
 	return getRows(getColumns(S,E.notEdge),F.notEdge);
 	//C*A*Eigen::SparseMatrix<double>(C.transpose())
@@ -534,6 +548,43 @@ MESH_TYPE_TABLE
 #undef X
 
 #define X(a) template F FiniteElementSpace<a>::getPreCalc(int n);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template FiniteElementSpace<a> miniFE2FiniteElementSpace(const miniFE &mini, GaussService &gaussService, FiniteElementService &finiteElementService);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template miniFE finiteElementSpace2miniFE(const FiniteElementSpace<a> &finiteElementSpace);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template std::vector<dvec> FiniteElementSpace<a>::getValuesInMeshNodes(const std::vector<double> &v);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template BaseFunction FiniteElementSpace<a>::getBaseFunction(int i, int n);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template std::vector<int> FiniteElementSpace<a>::collisionDetection(const std::vector<dvec> &X);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template std::vector<std::vector<int>> FiniteElementSpace<a>::collisionDetection(const std::vector<std::vector<dvec>> &X);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template std::vector<std::vector<dvec>> FiniteElementSpace<a>::getValuesInGaussNodes(const std::vector<double> &v);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<a> &E, const FiniteElementSpace<a> &F);
+MESH_TYPE_TABLE
+#undef X
+template Eigen::SparseMatrix<double> compress(const Eigen::SparseMatrix<double> &S, const FiniteElementSpace<oneDim> &E, const FiniteElementSpace<Triangular> &F);
+
+#define X(a) template Eigen::SparseMatrix<double> FiniteElementSpace<a>::applyEdgeCondition(const Eigen::SparseMatrix<double> &S);
 MESH_TYPE_TABLE
 #undef X
 

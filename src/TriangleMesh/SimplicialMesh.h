@@ -5,6 +5,7 @@
 #ifndef SIMPLICIALMESH_H_INCLUDED_
 #define SIMPLICIALMESH_H_INCLUDED_
 
+#include <assert.h>
 #include <vector>
 #include <functional>
 
@@ -13,6 +14,7 @@
 #include "TriangleMesh.h"
 
 #define MESH_TYPE_TABLE \
+X(oneDim) \
 X(Triangular) \
 X(Parallelogram) \
 X(Quadrilateral) \

@@ -27,14 +27,15 @@ private:
 	Mesh mV, mS;
 	Gauss gV, gS;
 	GaussService gaussService;
-	TriangleMesh triMeshV, triMeshS;
+	SimplicialMesh<Triangular> triMeshV;
+	SimplicialMesh<Triangular> triMeshS;
 	FiniteElement f_1d;
 	FiniteElement f_2d;
 	FiniteElementService finiteElementService;
-	FiniteElementSpaceV V;
-	FiniteElementSpaceQ Q;
-	FiniteElementSpaceS S;
-	FiniteElementSpaceL L;
+	FiniteElementSpaceV<Triangular> V;
+	FiniteElementSpaceQ<Triangular> Q;
+	FiniteElementSpaceS<Triangular> S;
+	FiniteElementSpaceL<Triangular> L;
 	timestep t0;
 	timestep t1;
 	Simulation s;
@@ -60,6 +61,7 @@ TestSimulation::test1(void)
 void TestSimulation::setUp(void)
 {
 	std::cout << std::endl;
+	logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_INFO);
 	logx::Logger::getInstance()->setLogLevel("test/TestSim.cu",LOG_LEVEL_INFO);
 	logx::Logger::getInstance()->setLogLevel("src/Simulation/Simulation.cu",LOG_LEVEL_DEBUG);
 	logx::Logger::getInstance()->setLogLevel("src/FiniteElementSpace/FiniteElementSpaceS.cu",LOG_LEVEL_INFO);
@@ -78,7 +80,7 @@ void TestSimulation::setUp(void)
 	tV = "mesh/perugia/t3.mat";
 	eV = "mesh/perugia/e3.mat";
 
-	STRUCTURE_THICKNESS s_thickness = THIN;
+	STRUCTURE_THICKNESS s_thickness = THICK;
 
 	if(s_thickness == THICK){
 		pS = "mesh/pS_32_3.mat";
@@ -99,11 +101,11 @@ void TestSimulation::setUp(void)
 	mV = readMesh(pV,tV,eV);
 	mS = readMesh(pS,tS,eS);
 
-	triMeshV = TriangleMesh(mV,gV);
-	triMeshV.loadOnGPU();
+	triMeshV = SimplicialMesh<Triangular>(mV,gV);
+	triMeshV.triangleMesh.loadOnGPU();
 
-	triMeshS = TriangleMesh(mS,gS);
-	triMeshS.loadOnGPU();
+	triMeshS = SimplicialMesh<Triangular>(mS,gS);
+	triMeshS.triangleMesh.loadOnGPU();
 
 	finElemQ = finiteElementService.getFiniteElement("P1P0_2d1d");
 	finElemV = finiteElementService.getFiniteElement("P2_2d2d");
@@ -113,24 +115,24 @@ void TestSimulation::setUp(void)
 	else
 		throw EXCEPTION("finElemS!");
 
-	V = FiniteElementSpaceV(triMeshV,finElemV,gV);
+	V = FiniteElementSpaceV<Triangular>(triMeshV,finElemV,gV);
 	V.buildFiniteElementSpace();
 	V.buildEdge();
-	Q = FiniteElementSpaceQ(triMeshV,finElemQ,gV);
+	Q = FiniteElementSpaceQ<Triangular>(triMeshV,finElemQ,gV);
 	Q.buildFiniteElementSpace();
 	Q.buildEdge();
-	S = FiniteElementSpaceS(triMeshS,finElemS,gS,s_thickness);
+	S = FiniteElementSpaceS<Triangular>(triMeshS,finElemS,gS,s_thickness);
 	S.buildFiniteElementSpace();
 	S.buildEdge();
-	//L = FiniteElementSpaceL(triMeshS,finElemS,gS);
+	//L = FiniteElementSpaceL<Triangular>(triMeshS,finElemS,gS);
 	//L.buildFiniteElementSpace();
 	//L.buildEdge();
 
 	Parameters parameters;
 	parameters.rho = 1.0;
 	parameters.eta = 0.01;
-	parameters.deltarho = 0.0;
-	parameters.kappa = 100.0;
+	parameters.deltarho = 10.0;
+	parameters.kappa = 1.0;
 	parameters.deltat = 0.0001;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
@@ -139,7 +141,8 @@ void TestSimulation::setUp(void)
 	t0.time = 0; t0.id = id;
 	t1.time = 1; t1.id = id;
 
-	double gamma = 1.0;
+	double sigma = 0.75;
+	double gamma = 1.1;
 	double R = 0.6;
 	double xC = 0.0;
 	double yC = 0.0;
@@ -151,15 +154,15 @@ void TestSimulation::setUp(void)
 	for(int i=0;i<S.spaceDim/2;++i)
 	{
 		if(s_thickness == THIN){
-			x[i]=gamma*R*cos(A[i](0)/AA*2*M_PI)+xC;
-			x[i+S.spaceDim/2]=1/gamma*R*sin(A[i](0)/AA*2*M_PI)+yC;
+			x[i]=sigma*gamma*R*cos(A[i](0)/AA*2*M_PI)+xC;
+			x[i+S.spaceDim/2]=sigma*(1/gamma)*R*sin(A[i](0)/AA*2*M_PI)+yC;
 			std::ostringstream ss;
 			ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
 			LOG_TRACE(ss);
 		}
 		else if(s_thickness == THICK){
-			x[i]=A[i](0)*gamma;
-			x[i+S.spaceDim/2]=A[i](1)*(1.0/gamma);
+			x[i]=A[i](0)*gamma*sigma;
+			x[i+S.spaceDim/2]=A[i](1)*(1.0/gamma)*sigma;
 			std::ostringstream ss;
 			ss << i << " :\t[ " << x[i] << " , " << x[i+S.spaceDim/2] << " ]";
 			LOG_TRACE(ss);
@@ -176,8 +179,8 @@ void TestSimulation::setUp(void)
 	}
 
 	std::ostringstream ss,tt;
-	ss << "V mesh radius " << V.T.getMeshRadius();
-	tt << "S mesh radius " << S.T.getMeshRadius();
+	ss << "V mesh radius " << V.T.triangleMesh.getMeshRadius();
+	tt << "S mesh radius " << S.T.triangleMesh.getMeshRadius();
 	LOG_INFO(ss);
 	LOG_INFO(tt);
 

@@ -64,11 +64,21 @@ void FiniteElementSpaceS<meshType>::buildEdge()
 	}
 }
 
-//#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS();
-//MESH_TYPE_TABLE
-//#undef X
+#define X(a) template FiniteElementSpaceS<a>& FiniteElementSpaceS<a>::operator=(const FiniteElementSpace<a> &finiteElementSpace);
+MESH_TYPE_TABLE
+#undef X
 
-//#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS(SimplicialMesh<a> t, FiniteElement f, Gauss g);
-//MESH_TYPE_TABLE
-//#undef X
+/*
+#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS();
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template FiniteElementSpaceS<a>::FiniteElementSpaceS(SimplicialMesh<a> t, FiniteElement f, Gauss g, STRUCTURE_THICKNESS thickness);
+MESH_TYPE_TABLE
+#undef X
+*/
+
+#define X(a) template void FiniteElementSpaceS<a>::buildEdge();
+MESH_TYPE_TABLE
+#undef X
 

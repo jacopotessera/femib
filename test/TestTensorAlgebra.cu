@@ -30,8 +30,9 @@ private:
 	GaussService gaussService;
 	Gauss g;
 	TriangleMesh triMesh;
+	SimplicialMesh<Triangular> simplicialMesh;
 	FiniteElementService finiteElementService;
-	FiniteElementSpace finElem;
+	FiniteElementSpace<Triangular> finElem;
 };
 
 void
@@ -46,14 +47,16 @@ void TestFiniteElement::setUp(void)
 	t = "mesh/perugia/t0.mat";
 	e = "mesh/perugia/e0.mat";
 	g = gaussService.getGauss("gauss2_2d");
-	TriangleMesh triMesh = TriangleMesh(readMesh(p,t,e),g);
+	//TriangleMesh triMesh = TriangleMesh(readMesh(p,t,e),g);
 
-	triMesh.setDim();
-	triMesh.setAffineTransformation();
-	triMesh.loadOnGPU();
+	simplicialMesh = SimplicialMesh<Triangular>(readMesh(p,t,e),g);
+
+	simplicialMesh.triangleMesh.setDim();
+	simplicialMesh.triangleMesh.setAffineTransformation();
+	simplicialMesh.triangleMesh.loadOnGPU();
 
 	FiniteElement f = finiteElementService.getFiniteElement("P1_2d2d");
-	FiniteElementSpace finElem(triMesh,f,g);
+	finElem = FiniteElementSpace<Triangular>(simplicialMesh,f,g);
 }
 
 void TestFiniteElement::tearDown(void)

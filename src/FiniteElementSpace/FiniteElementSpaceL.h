@@ -7,12 +7,13 @@
 
 #include "FiniteElementSpace.h"
 
-class FiniteElementSpaceL : public FiniteElementSpace
+template<MeshType meshType>
+class FiniteElementSpaceL : public FiniteElementSpace<meshType>
 {
 	public:
-		FiniteElementSpaceL() : FiniteElementSpace(){};
-		FiniteElementSpaceL(TriangleMesh t, FiniteElement f, Gauss g) : FiniteElementSpace(t,f,g){};
-		FiniteElementSpaceL& operator=(const FiniteElementSpace &finiteElementSpace);
+		FiniteElementSpaceL() : FiniteElementSpace<meshType>(){};
+		FiniteElementSpaceL(SimplicialMesh<meshType> t, FiniteElement f, Gauss g) : FiniteElementSpace<meshType>(t,f,g){};
+		FiniteElementSpaceL<meshType>& operator=(const FiniteElementSpace<meshType> &finiteElementSpace);
 		void buildEdge();
 };
 

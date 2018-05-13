@@ -41,6 +41,11 @@ typedef std::vector<Eigen::Triplet<double>> etmat;
 typedef Eigen::SparseMatrix<double> esmat;
 typedef Eigen::Matrix<double,Eigen::Dynamic,1> evec;
 
+typedef FiniteElementSpaceV<Triangular> FiniteElementSpaceV_;
+typedef FiniteElementSpaceQ<Triangular> FiniteElementSpaceQ_;
+typedef FiniteElementSpaceS<Triangular> FiniteElementSpaceS_;
+typedef FiniteElementSpaceL<Triangular> FiniteElementSpaceL_;
+
 class Simulation
 {
 	public:
@@ -54,10 +59,10 @@ class Simulation
 		Parameters parameters;
 		bool full;
 
-		FiniteElementSpaceV V;
-		FiniteElementSpaceQ Q;
-		FiniteElementSpaceS S;
-		FiniteElementSpaceL L;
+		FiniteElementSpaceV_ V;
+		FiniteElementSpaceQ_ Q;
+		FiniteElementSpaceS_ S;
+		FiniteElementSpaceL_ L;
 
 		std::vector<int> edge;
 		std::vector<int> notEdge;
@@ -70,25 +75,25 @@ class Simulation
 		double getEnergy(timestep t);
 
 		Simulation(std::string id,dbconfig db,Parameters parameters,
-			FiniteElementSpaceV V,FiniteElementSpaceQ Q,
-			FiniteElementSpaceS S,FiniteElementSpaceL L,
+			FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,
+			FiniteElementSpaceS_ S,FiniteElementSpaceL_ L,
 			timestep t0,timestep t1,bool full);
 
 		Simulation(std::string id,dbconfig db,Parameters parameters,
-			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
+			FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,FiniteElementSpaceS_ S,FiniteElementSpaceL_ L,
 			timestep t0,timestep t1) : Simulation(id,db,parameters,V,Q,S,L,t0,t1,true){};
 
 		Simulation(std::string id,dbconfig db,Parameters parameters,
-			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,
-			timestep t0,timestep t1) : Simulation(id,db,parameters,V,Q,S,FiniteElementSpaceL(),t0,t1,false){};
+			FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,FiniteElementSpaceS_ S,
+			timestep t0,timestep t1) : Simulation(id,db,parameters,V,Q,S,FiniteElementSpaceL_(),t0,t1,false){};
 
 		Simulation(dbconfig db,Parameters parameters,
-			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,FiniteElementSpaceL L,
+			FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,FiniteElementSpaceS_ S,FiniteElementSpaceL_ L,
 			timestep t0,timestep t1) : Simulation(getTimestamp(),db,parameters,V,Q,S,L,t0,t1,true){};
 
 		Simulation(dbconfig db,Parameters parameters,
-			FiniteElementSpaceV V,FiniteElementSpaceQ Q,FiniteElementSpaceS S,
-			timestep t0,timestep t1) : Simulation(getTimestamp(),db,parameters,V,Q,S,FiniteElementSpaceL(),t0,t1,false){};
+			FiniteElementSpaceV_ V,FiniteElementSpaceQ_ Q,FiniteElementSpaceS_ S,
+			timestep t0,timestep t1) : Simulation(getTimestamp(),db,parameters,V,Q,S,FiniteElementSpaceL_(),t0,t1,false){};
 
 		void setParameters(Parameters parameters);
 		void setTime(int time);

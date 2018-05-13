@@ -4,38 +4,48 @@
 
 #include "FiniteElementSpaceQ.h"
 
-FiniteElementSpaceQ& FiniteElementSpaceQ::operator=(const FiniteElementSpace &finiteElementSpace)
+template<MeshType meshType>
+FiniteElementSpaceQ<meshType>& FiniteElementSpaceQ<meshType>::operator=(const FiniteElementSpace<meshType> &finiteElementSpace)
 {
-	T = finiteElementSpace.T;
-	gauss = finiteElementSpace.gauss;
-	finiteElement = finiteElementSpace.finiteElement;
-	buildFiniteElementSpace();
-	buildEdge();
+	this->T = finiteElementSpace.T;
+	this->gauss = finiteElementSpace.gauss;
+	this->finiteElement = finiteElementSpace.finiteElement;
+	this->buildFiniteElementSpace();
+	this->buildEdge();
 	return *this;
 }
 
-void FiniteElementSpaceQ::buildEdge()
+template<MeshType meshType>
+void FiniteElementSpaceQ<meshType>::buildEdge()
 {
-	edge = {0};
-	nBT = 1;
-	notEdge = setdiff(linspace(spaceDim),edge);
+	this->edge = {0};
+	this->nBT = 1;
+	this->notEdge = setdiff(linspace(this->spaceDim),this->edge);
 
 	std::vector<Eigen::Triplet<double>> tE;
-	Eigen::SparseMatrix<double> sE(1,spaceDim);
-	Eigen::Matrix<double,1,Eigen::Dynamic> dE(spaceDim);
-	for(int n=0;n<nodes.T.size();++n)
+	Eigen::SparseMatrix<double> sE(1,this->spaceDim);
+	Eigen::Matrix<double,1,Eigen::Dynamic> dE(this->spaceDim);
+	for(int n=0;n<this->nodes.T.size();++n)
 	{
-		for(int j=0;j<baseFunction.size();++j)
+		for(int j=0;j<this->baseFunction.size();++j)
 		{
-			BaseFunction b = getBaseFunction(j,n);
-			double valE = T.integrate(project(b.x,0),n);
-			assert(b.i < spaceDim);
+			BaseFunction b = this->getBaseFunction(j,n);
+			double valE = this->T.integrate(project(b.x,0),n);
+			assert(b.i < this->spaceDim);
 			tE.push_back(Eigen::Triplet<double>(0,b.i,valE));
 		}
 	}
 
 	sE.setFromTriplets(tE.begin(),tE.end());
 	dE = Eigen::Matrix<double,1,Eigen::Dynamic>(sE);
-	E = dE / (-1*dE(0));
+	this->E = dE / (-1*dE(0));
 }
+
+#define X(a) template FiniteElementSpaceQ<a>& FiniteElementSpaceQ<a>::operator=(const FiniteElementSpace<a> &finiteElementSpace);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template void FiniteElementSpaceQ<a>::buildEdge();
+MESH_TYPE_TABLE
+#undef X
 

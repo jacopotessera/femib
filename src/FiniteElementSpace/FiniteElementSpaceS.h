@@ -19,7 +19,7 @@ class FiniteElementSpaceS : public FiniteElementSpace<meshType>
 	public:
 		STRUCTURE_THICKNESS thickness;
 		FiniteElementSpaceS() : FiniteElementSpace<meshType>(){};
-		FiniteElementSpaceS(TriangleMesh t, FiniteElement f, Gauss g, STRUCTURE_THICKNESS thickness=THIN) : FiniteElementSpace<meshType>(t,f,g){
+		FiniteElementSpaceS(SimplicialMesh<meshType> t, FiniteElement f, Gauss g, STRUCTURE_THICKNESS thickness=THIN) : FiniteElementSpace<meshType>(t,f,g){
 			this->thickness = thickness;
 		};
 		FiniteElementSpaceS& operator=(const FiniteElementSpace<meshType> &finiteElementSpace);

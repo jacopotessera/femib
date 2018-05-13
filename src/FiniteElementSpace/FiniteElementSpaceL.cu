@@ -4,35 +4,36 @@
 
 #include "FiniteElementSpaceL.h"
 
-FiniteElementSpaceL& FiniteElementSpaceL::operator=(const FiniteElementSpace &finiteElementSpace)
+template<MeshType meshType>
+FiniteElementSpaceL<meshType>& FiniteElementSpaceL<meshType>::operator=(const FiniteElementSpace<meshType> &finiteElementSpace)
 {
-	T = finiteElementSpace.T;
-	gauss = finiteElementSpace.gauss;
-	finiteElement = finiteElementSpace.finiteElement;
-	buildFiniteElementSpace();
-	buildEdge();
+	this->T = finiteElementSpace.T;
+	this->gauss = finiteElementSpace.gauss;
+	this->finiteElement = finiteElementSpace.finiteElement;
+	this->buildFiniteElementSpace();
+	this->buildEdge();
 	return *this;
 }
 
-void FiniteElementSpaceL::buildEdge()
+template<MeshType meshType>
+void FiniteElementSpaceL<meshType>::buildEdge()
 {
-	/*
-	nBT = 0;
-	notEdge = linspace(spaceDim);
+	this->nBT = 0;
+	this->notEdge = linspace(this->spaceDim);
 
 	std::vector<Eigen::Triplet<double>> tE;
-	Eigen::SparseMatrix<double> sE(nBT,spaceDim);
-	Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> dE(nBT,spaceDim);
+	Eigen::SparseMatrix<double> sE(this->nBT,this->spaceDim);
+	Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> dE(this->nBT,this->spaceDim);
 
-	for(int i=0;i<nBT;++i)
+	for(int i=0;i<this->nBT;++i)
 	{
-		tE.push_back({i,edge[i],-1.0});
+		tE.push_back({i,this->edge[i],-1.0});
 	}
 	sE.setFromTriplets(tE.begin(),tE.end());
 	dE = Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>(sE);
-	E = dE;
-	*/
-	bool thin = true; //TODO
+	this->E = dE;
+	
+	/*bool thin = true; //TODO
 	bool thick = !thin;
 	if(thin)
 	{
@@ -71,6 +72,13 @@ void FiniteElementSpaceL::buildEdge()
 		sE.setFromTriplets(tE.begin(),tE.end());
 		dE = Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>(sE);
 		E = dE;
-	}
+	}*/
 }
 
+#define X(a) template FiniteElementSpaceL<a>& FiniteElementSpaceL<a>::operator=(const FiniteElementSpace<a> &finiteElementSpace);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template void FiniteElementSpaceL<a>::buildEdge();
+MESH_TYPE_TABLE
+#undef X
