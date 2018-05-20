@@ -10,10 +10,14 @@ DATETIME=`date +"%Y-%m-%d_%H:%M:%S"`
 #ln -rs lib/logger/src/Log.h lib/Log.h
 #ln -rs lib/logger/build/Log.o lib/Log.o
 VPATH = src/Cuda:src/dmat:src/read:src/affine:src/Gauss:src/TriangleMesh:src/FiniteElement:src/FiniteElementSpace:src/utils:src/tensorAlgebra:src/mongodb:src/Simulation
-.PHONY : test clean plot doc prepare find todo logger
+.PHONY : test clean plot doc prepare find todo logger all
+default_target: all
 
 logger:
 	@make -C lib/logger/ clean test
+
+all: test/build/testCuda test/build/testDmat test/build/testAffine test/build/testSimplicialMesh test/build/testFiniteElement  test/build/testRead  test/build/testGauss test/build/testTriangleMesh test/build/testTensorAlgebra test/build/testMongo test/build/testUtils test/build/testSim
+	@echo "All."
 
 build/mongodb_impl.o: mongodb_impl.cpp mongodb_impl.h
 	@echo -n "Compiling $@..."

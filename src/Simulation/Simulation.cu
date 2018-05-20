@@ -134,6 +134,7 @@ plotData Simulation::timestep2plotData(timestep t)
 	p.id = t.id;
 	p.time = t.time;
 
+sLOG_OK("calculating mesh grid ...");
 	std::vector<std::vector<double>> box = V.T.triangleMesh.getBox();
 	double step = 0.1;
 
@@ -158,7 +159,7 @@ plotData Simulation::timestep2plotData(timestep t)
 
 //	for(dvec v : G)
 //		std::cout << v << std::endl;
-
+sLOG_OK("calculating u and q ...");
 	std::vector<int> M = V.collisionDetection(G);
 
 	for(int i=0;i<G.size();++i)
@@ -204,16 +205,35 @@ plotData Simulation::timestep2plotData(timestep t)
 		dvec ss = S(timesteps[p.time].x,N[i]).x(H[i]);
 		p.x.push_back({dvec2vector(H[i]),dvec2vector(ss)});
 	}*/
+sLOG_OK("calculating x ...");
+	p.x.reserve(S.nodes.P.size());
+	p.x.resize(S.nodes.P.size());
 
-	for(dvec pp : S.nodes.P)
+	S.calc(timesteps[p.time].x,S.nodes.P);
+
+	for(int n=0;n<S.nodes.T.size();++n)
+	{
+		for(int m : S.nodes.T[n])
+		{
+			dvec pp = S.nodes.P[m];
+			dvec s = S.getPreCalc(n).x(pp);
+//sLOG_OK(pp);
+			if(s(0)!=0 || s(1)!=0)
+				p.x[m] = {dvec2vector(pp),dvec2vector(s)};
+			//else
+				//LOG_WARNING("S(x) == 0 !");
+		}
+	}
+
+	/*for(dvec pp : S.nodes.P)
 	{
 		int m = S.collisionDetection({pp})[0];
-		dvec s = S(timesteps[p.time].x,m).x(pp);
-std::ostringstream ss,tt;
-ss << "x    = [ " << pp(0) << " ]";//<< " , " << pp(1) << " ]";
-tt << "S(x) = [ " << s(0) << " , " << s(1) << " ]";
-LOG_TRACE(ss);
-LOG_TRACE(tt);
+		dvec s = S(timesteps[p.time].x,m).x(pp);  //TODO AAAAAAAAAAAAAAAAAAAAAAA
+//std::ostringstream ss,tt;
+//ss << "x    = [ " << pp(0) << " ]";//<< " , " << pp(1) << " ]";
+//tt << "S(x) = [ " << s(0) << " , " << s(1) << " ]";
+//LOG_TRACE(ss);
+//LOG_TRACE(tt);
 		if(s(0)!=0 || s(1)!=0){
 			p.x.push_back({dvec2vector(pp),dvec2vector(s)});
 		}
@@ -221,7 +241,7 @@ LOG_TRACE(tt);
 			LOG_WARNING("S(x) == 0 !");
 			p.x.push_back({dvec2vector(pp),p.x[p.x.size()-1][1]});
 		}
-	}
+	}*/
 
 	return p;
 }
@@ -506,12 +526,16 @@ void Simulation::buildF()
 {
 	int time = timesteps.size();
   	FF = evec::Zero(V.spaceDim);
-logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_DEBUG);
+//logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LOG_LEVEL_DEBUG);
 	std::vector<std::vector<dvec>> yyy = S.getValuesInGaussNodes(timesteps[time-1].x);
 	MM = V.collisionDetection(yyy);
 
+	S.calc(timesteps[time-1].x);
+
 	for(int n=0;n<S.nodes.T.size();++n)
 	{
+		F s = S.getPreCalc(n);
+
 		for(int k=0;k<MM[n].size();++k)
 		{
 			int m=MM[n][k];
@@ -519,12 +543,12 @@ logx::Logger::getInstance()->setLogLevel("src/TriangleMesh/SimplicialMesh.cu",LO
 			for(int i=0;i<V.baseFunction.size();++i)
 			{
 				BaseFunction a = V.getBaseFunction(i,m);
-				double valF = S.T.integrate(pf(S(timesteps[time-1].x,n).dx,compose(a.f,S(timesteps[time-1].x,n)).dx),n);
+				double valF = S.T.integrate(pf(s.dx,compose(a.f,s).dx),n);
 				FF(a.i) += (-parameters.kappa)*valF; //WAT2
 				for(int j=0;j<V.baseFunction.size();++j)
 				{
 					BaseFunction b = V.getBaseFunction(j,m);
-					double valMB = S.T.integrate(ddot(compose(a.f,S(timesteps[time-1].x,n)).x,compose(b.f,S(timesteps[time-1].x,n)).x),n);
+					double valMB = S.T.integrate(ddot(compose(a.f,s).x,compose(b.f,s).x),n);
 					if(valMB!=0)
 					{
 						MB.push_back(Eigen::Triplet<double>(a.i,b.i,valMB));
@@ -808,7 +832,7 @@ void Simulation::solve()
 		solver.compute(sCt);
 		evec v = solver.solve(b);
 		timesteps.push_back(eigen2timestep(v));
-		updateX();
+		LOG_INFO("updateX ...");updateX();
 	}
 }
 

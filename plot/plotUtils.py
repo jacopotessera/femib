@@ -100,6 +100,7 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 	Y = []
 	U = []
 	V = []
+	Z = []
 	P = []
 	A = []
 	E = []
@@ -116,6 +117,7 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 
 			uu = list(map(lambda x : x[1][0],t["u"] ))
 			vv = list(map(lambda x : x[1][1],t["u"] ))
+			zz = list(map(lambda x : numpy.sqrt(x[1][0]*x[1][0]+x[1][1]*x[1][1]),t["u"] ))
 
 			uuu = [0]*len(uu)
 			for i,u in enumerate(uu):
@@ -129,8 +131,16 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 				qq = i%21
 				vvv[i] = vv[qq*21+ii]
 
+			zzz = [[0]*21 ]*21
+			for i,v in enumerate(zz):
+				ii = i//21
+				qq = i%21
+				zzz[ii][qq] = zz[ii*21+qq]
+
+
 			U.append(uu)
 			V.append(vv)
+			Z.append(zz)
 			W.append({	"x":list(map(lambda x : x[0][0],t["u"] )),"y":list(map(lambda x : x[0][1],t["u"] )),
 						"u":list(map(lambda x : x[1][0],t["u"] )),"v":list(map(lambda x : x[1][1],t["u"] ))})
 
@@ -158,7 +168,7 @@ def calcPlotData(timesteps,parameters,TMAX,plotConfig):
 		
 			print(str(t["time"]) + ": area = " + str(area/plotConfig["area0"]) + "%, e = " +str(aa/AA))
 
-	return {"T":T,"X":[X,Y],"U":[U,V],"P":P,"A":[A,E],"W":W}
+	return {"T":T,"X":[X,Y],"U":[U,V,Z],"P":P,"A":[A,E],"W":W}
 	
 if __name__ == '__main__':
 	#PlotUtils.test()

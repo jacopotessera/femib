@@ -130,10 +130,10 @@ void TestSimulation::setUp(void)
 
 	Parameters parameters;
 	parameters.rho = 1.0;
-	parameters.eta = 0.01;
+	parameters.eta = 0.1;
 	parameters.deltarho = 10.0;
-	parameters.kappa = 1.0;
-	parameters.deltat = 0.0001;
+	parameters.kappa = 10.0;
+	parameters.deltat = 0.00005;
 	parameters.TMAX = 10000;
 	db = {"testSimulation"};
 	//drop(db);
@@ -188,8 +188,21 @@ void TestSimulation::setUp(void)
 	//s = Simulation(db,parameters,V,Q,S,L,t0,t1);
 	//s = Simulation(id,db,parameters,V,Q,S,L,t0,t1);
 	//s.getSimulation(db,"");
+
+	/*LOG_INFO("buildK2f...");
+	s.clear();
+	s.buildK2f();
+	LOG_INFO("Fin.");*/
+
+	/*LOG_INFO("buildF...");
+	s.clear();
+	s.buildF();
+	LOG_INFO("Fin.");*/
+
 	s.prepare();
 	s.advance(10000);
+
+
 	/*auto t0 = std::chrono::high_resolution_clock::now();
 	s.buildFluidMatricesParallel();
 	auto t1 = std::chrono::high_resolution_clock::now();

@@ -11,6 +11,8 @@ __host__ __device__ dmat::dmat(){}
 __host__ __device__ dtrian::dtrian(){}
 __host__ __device__ ditrian::ditrian(){}
 
+const dmat Identity = {{1,0,0},{0,1,0},{0,0,1}};
+
 /*__host__ __device__ dvec::dvec(int s)
 {
 	if(s<=M_DVEC)
@@ -564,7 +566,11 @@ __host__ __device__ double dnorm(const dmat &A)
 
 __host__ __device__ dmat inv(const dmat &A)
 {
+	#ifndef __CUDA_ARCH__
+	dmat I = Identity;
+	#else
 	dmat I = {{1,0,0},{0,1,0},{0,0,1}};
+	#endif
 	dmat B;
 	double detA = ddet(A);
 	if(_abs(detA)>M_EPS)

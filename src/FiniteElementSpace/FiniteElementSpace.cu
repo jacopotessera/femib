@@ -155,9 +155,7 @@ F FiniteElementSpace<meshType>::operator()(const std::vector<double> &v, int n)
 		{
 			if(T.xInN(x,n))
 			{
-				sLOG_DEBUG("x: " << x);
 				dvec q = T.toMesh0x(x,n);
-				sLOG_DEBUG("q: " << q);
 				y += v[getIndex(i,n)]*baseFunction[i].x(q);
 			}
 		}
@@ -190,21 +188,43 @@ void FiniteElementSpace<meshType>::calc(const std::vector<double> &v)
 			int m = T.q2t[n][mm];
 			for(int k=0;k<gauss.n;k++)
 			{
+				dvec x = T.triangleMesh.B[m]* ( gauss.nodes[k] ) + T.triangleMesh.b[m];
 				dvec y; y.size = ambientDim;
 				dmat z; z.rows = ambientDim; z.cols = theOtherDim;
 
-				for(int i=0;i<baseFunction.size();++i)
+				/*for(int i=0;i<baseFunction.size();++i)
 				{
-					y += v[getIndex(i,n)]*baseFunction[i].x( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) );
-					z = z + v[getIndex(i,n)]*baseFunction[i].dx( affineB(mm,T.mesh0)*gauss.nodes[k]+affineb(mm,T.mesh0) )* affineB(mm,T.mesh0);
+					y += v[getIndex(i,n)]*baseFunction[i].x( T.B0[mm]*gauss.nodes[k]+T.b0[mm] );
+					z = z + v[getIndex(i,n)]*baseFunction[i].dx( T.B0[mm]*gauss.nodes[k]+T.b0[mm] )* T.B0[mm];
 				}
-				dvec x = T.triangleMesh.B[m]* ( gauss.nodes[k] ) + T.triangleMesh.b[m];
-				xDx w = {y,z};
+				xDx w = {y,z};*/
+				xDx w = {(*this)(v,n).x(x),(*this)(v,n).dx(x)};
+//sLOG_OK(w.x << w.dx);
 				preCalc[n][x] = w;
 			}
 		}
 	}
 }
+
+template<MeshType meshType>
+void FiniteElementSpace<meshType>::calc(const std::vector<double> &v, const std::vector<dvec> &p)
+{
+	preCalc.clear();
+	//std::unordered_map<dvec,xDx> temp;
+	//preCalc.push_back(temp);
+	preCalc.reserve(nodes.T.size());
+	preCalc.resize(nodes.T.size());
+
+	for(dvec pp : p)
+	{
+		int n = collisionDetection({pp})[0];
+
+		xDx w = {(*this)(v,n).x(pp),{{0}}};
+		preCalc[n][pp] = w;
+//sLOG_OK(n << std::endl << pp << w.x);
+	}
+}
+
 
 template<MeshType meshType>
 F FiniteElementSpace<meshType>::getPreCalc(int n)
@@ -544,6 +564,10 @@ MESH_TYPE_TABLE
 #undef X
 
 #define X(a) template void FiniteElementSpace<a>::calc(const std::vector<double> &v);
+MESH_TYPE_TABLE
+#undef X
+
+#define X(a) template void FiniteElementSpace<a>::calc(const std::vector<double> &v, const std::vector<dvec> &p);
 MESH_TYPE_TABLE
 #undef X
 

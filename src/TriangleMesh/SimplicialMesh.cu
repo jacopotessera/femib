@@ -85,6 +85,13 @@ void SimplicialMesh<oneDim>::setTriangleMesh()
 	mesh0.P = {{0.0},{1.0}};
 	mesh0.T = {{0,1}};
 
+	for(int mm=0;mm<mesh0.T.size();++mm)
+	{
+		B0.push_back(affineB(mm,mesh0));
+		b0.push_back(affineb(mm,mesh0));
+sLOG_OK("oneDim: " << B0.size() << " " << b0.size() );
+	}
+
 	int n=0;
 	for(auto q : mesh.T)
 	{
@@ -99,6 +106,13 @@ void SimplicialMesh<Triangular>::setTriangleMesh()
 	mesh0.P = {{0.0,0.0},{1.0,0.0},{0.0,1.0}};
 	mesh0.T = {{0,1,2}};
 
+	for(int mm=0;mm<mesh0.T.size();++mm)
+	{
+		B0.push_back(affineB(mm,mesh0));
+		b0.push_back(affineb(mm,mesh0));
+sLOG_OK("Triangular: " << B0.size() << " " << b0.size() );
+	}
+
 	int n=0;	
 	for(auto q : mesh.T)
 	{
@@ -112,6 +126,13 @@ void SimplicialMesh<Parallelogram>::setTriangleMesh()
 {
 	mesh0.P = {{0.0,0.0},{1.0,0.0},{1.0,1.0},{0.0,1.0}};
 	mesh0.T = {{0,1,3},{2,3,1}};
+
+	for(int mm=0;mm<mesh0.T.size();++mm)
+	{
+		B0.push_back(affineB(mm,mesh0));
+		b0.push_back(affineb(mm,mesh0));
+sLOG_OK("Parallelogram: " << B0.size() << " " << b0.size() );
+	}
 
 	Mesh mt;
 	mt.P = mesh.P;
@@ -140,24 +161,15 @@ MESH_TYPE_TABLE
 template<MeshType meshType>
 dvec SimplicialMesh<meshType>::toMesh0x(const dvec& x, int n)
 {
-	//sLOG_OK("n: " << n);
-	//sLOG_OK("size: " << q2t[n].size());
-	//sLOG_OK("x: " << x);
-
 	for(int mm=0;mm<q2t[n].size();++mm)
 	{
 		int m = q2t[n][mm];
-		//sLOG_OK(triangleMesh.Binv[m]);
-		//sLOG_OK(x-triangleMesh.b[m]);
-
 		dvec X = triangleMesh.Binv[m]*(x-triangleMesh.b[m]);
-	//sLOG_OK("X: " << X);
-	assert(in_std(X));
 		if(in_std(X))
 		{
-			//sLOG_OK(affineB(mm,mesh0));
-			//sLOG_OK(X);
-			return affineB(mm,mesh0)*X+affineb(mm,mesh0);
+//sLOG_OK(B0[mm]*X+b0[mm]);
+			return B0[mm]*X+b0[mm];
+			//return affineB(mm,mesh0)*X+affineb(mm,mesh0);
 		}
 	}
 	throw EXCEPTION("x is not in T[n]");
@@ -176,7 +188,11 @@ dmat SimplicialMesh<meshType>::toMesh0dx(const dvec& x, int n)
 		int m = q2t[n][mm];
 		dvec X = triangleMesh.Binv[m]*(x-triangleMesh.b[m]);
 		if(in_std(X))
-			return affineB(mm,mesh0)*triangleMesh.Binv[m];
+		{
+//sLOG_OK(B0[mm]*triangleMesh.Binv[m]);
+			return B0[mm]*triangleMesh.Binv[m];
+			//return affineB(mm,mesh0)*triangleMesh.Binv[m];
+		}
 	}
 	throw EXCEPTION("x is not in T[n]");
 }

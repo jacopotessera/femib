@@ -7,6 +7,8 @@
 from plotUtils import parse_id, parse_input, calcPlotData
 import sys, pymongo, numpy, matplotlib, matplotlib.pyplot as pyplot
 from matplotlib.animation import FuncAnimation
+from matplotlib.ticker import MaxNLocator
+from matplotlib import cm
 
 class PlotSimulation():
 
@@ -97,9 +99,9 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])	
 			ax[0][0].set_xlabel(label)
 			ax[0][0].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',units='inches')
-			circle = pyplot.Circle((0,0), 0.72, color='r',fill=False)
+			circle = pyplot.Circle((0,0), 0.75*0.8, color='r',fill=False)
 			ax[0][0].add_artist(circle)
-			circle = pyplot.Circle((0,0), 0.4, color='r',fill=False)
+			circle = pyplot.Circle((0,0), 0.75*0.6, color='r',fill=False)
 			ax[0][0].add_artist(circle)
 			ax[0][0].axis('equal')
 
@@ -109,6 +111,11 @@ class PlotSimulation():
 			label = 'time {0:.2f}'.format(self.plotData["T"][i])
 			ax[0][1].set_xlabel(label)
 			ax[0][1].quiver(grid_x,grid_y,self.plotData["U"][0][i],self.plotData["U"][1][i],pivot='mid',width=0.005)
+
+			mmm = max(list(map(lambda x: max(x),self.plotData["U"][2])))
+			levels = MaxNLocator(nbins=15).tick_values(0, mmm)
+			f = numpy.reshape(self.plotData["U"][2][i],grid_x.shape)
+			ax[0][1].contourf(grid_x,grid_y,f,cmap=cm.Blues,alpha=0.5,levels=levels)
 
 			ax[0][2].cla()
 			ax[0][2].set_xlim([-1,1])

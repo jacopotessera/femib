@@ -51,6 +51,9 @@ class SimplicialMesh
 		TriangleMesh triangleMesh;
 		std::vector<std::vector<int> > q2t;
 
+		std::vector<dmat> B0;
+		std::vector<dvec> b0;
+
 };
 
 #endif

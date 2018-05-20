@@ -51,6 +51,7 @@ class FiniteElementSpace
 		std::vector<dvec> getValuesInMeshNodes(const std::vector<double> &a);
 		std::vector<std::vector<dvec>> getValuesInGaussNodes(const std::vector<double> &a);
 		void calc(const std::vector<double> &a);
+		void calc(const std::vector<double> &a, const std::vector<dvec> &p);
 		F getPreCalc(int n);
 		BaseFunction getBaseFunction(int i, int n);
 	//private:
